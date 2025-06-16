@@ -28,15 +28,6 @@ const DemoCredentials = ({ onFillCredentials }) => {
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
     },
-    {
-      type: "New User",
-      email: "newuser@example.com",
-      password: "newuser123456",
-      icon: <User className="text-green-500" size={20} />,
-      description: "New user who needs to complete onboarding",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
-    },
   ];
 
   const copyToClipboard = async (text, field) => {
