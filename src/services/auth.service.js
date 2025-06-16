@@ -1,5 +1,4 @@
-import { apiPost, apiGet, apiPut, apiPatch } from "./api";
-
+import { apiPost, apiGet, apiPut, apiPatch, apiDelete } from "./api";
 class AuthService {
   // Login with email and password
   async login(credentials) {

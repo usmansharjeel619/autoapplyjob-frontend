@@ -7,7 +7,7 @@ import {
   Clock,
   ExternalLink,
   Bookmark,
-  BookmarkCheck,
+  Check, // Use Check instead of BookmarkCheck
 } from "lucide-react";
 import { formatDate, formatCurrency } from "../../utils/helpers";
 import Button from "../ui/Button";
@@ -53,6 +53,14 @@ const JobCard = ({
     );
   };
 
+  // Custom BookmarkCheck component using Bookmark + Check
+  const BookmarkCheckIcon = ({ size = 16 }) => (
+    <div className="relative">
+      <Bookmark size={size} className="fill-current" />
+      <Check size={size * 0.6} className="absolute top-0.5 left-0.5" />
+    </div>
+  );
+
   return (
     <Card className="job-card hover:shadow-md transition-all duration-200">
       <div className="p-6">
@@ -87,7 +95,11 @@ const JobCard = ({
                 variant="ghost"
                 size="sm"
                 icon={
-                  isSaved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />
+                  isSaved ? (
+                    <BookmarkCheckIcon size={16} />
+                  ) : (
+                    <Bookmark size={16} />
+                  )
                 }
                 onClick={handleSaveToggle}
                 className={isSaved ? "text-primary-600" : "text-gray-400"}

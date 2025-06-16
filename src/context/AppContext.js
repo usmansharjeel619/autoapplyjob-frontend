@@ -214,7 +214,8 @@ export const AppProvider = ({ children }) => {
   };
 
   const clearOnboardingProgress = () => {
-    removeStorageItem(STORAGE_KEYS.ONBOARDING_PROGRESS);
+    // removeStorageItem(STORAGE_KEYS.ONBOARDING_PROGRESS);
+    const removeStorageItem = (key) => localStorage.removeItem(key);
     dispatch({ type: APP_ACTIONS.SET_ONBOARDING_PROGRESS, payload: null });
   };
 
