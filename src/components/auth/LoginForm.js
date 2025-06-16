@@ -1,3 +1,4 @@
+// src/components/auth/LoginForm.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -6,6 +7,7 @@ import { useApp } from "../../context/AppContext";
 import { authValidation } from "../../utils/validation";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
+import DemoCredentials from "./DemoCredentials";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ const LoginForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
   const { showError, showSuccess } = useApp();
@@ -26,6 +29,11 @@ const LoginForm = () => {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleFillCredentials = (email, password) => {
+    setFormData({ email, password });
+    setErrors({});
   };
 
   const handleSubmit = async (e) => {
@@ -66,84 +74,99 @@ const LoginForm = () => {
   };
 
   const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth login
     showError("Google login coming soon!");
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-lg">AA</span>
-          </div>
+      {/* Demo Credentials */}
+      <DemoCredentials onFillCredentials={handleFillCredentials} />
+
+      {/* Login Form */}
+      <div className="bg-white p-8 rounded-xl shadow-lg">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+          <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
-        <p className="text-gray-600">Sign in to your AutoApplyJob account</p>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          error={errors.email}
-          icon={<Mail size={16} />}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Email Address"
+            type="email"
+            value={formData.email}
+            onChange={(value) => handleInputChange("email", value)}
+            error={errors.email}
+            placeholder="Enter your email"
+            icon={<Mail size={20} />}
+            disabled={loading}
+            required
+          />
 
-        <Input
-          label="Password"
-          type="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={(e) => handleInputChange("password", e.target.value)}
-          error={errors.password}
-          icon={<Lock size={16} />}
-          required
-        />
+          <Input
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={(value) => handleInputChange("password", value)}
+            error={errors.password}
+            placeholder="Enter your password"
+            icon={<Lock size={20} />}
+            rightIcon={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            }
+            disabled={loading}
+            required
+          />
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              />
+              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+            </label>
+            <Link
+              to="/auth?mode=forgot"
+              className="text-sm text-primary-600 hover:text-primary-700"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
-          <Link
-            to="/forgot-password"
-            className="text-sm text-primary-600 hover:text-primary-700"
+          <Button
+            type="submit"
+            className="w-full"
+            loading={loading}
+            disabled={loading}
           >
-            Forgot password?
-          </Link>
-        </div>
+            {loading ? "Signing in..." : "Sign In"}
+          </Button>
 
-        <Button type="submit" className="w-full" loading={loading}>
-          Sign In
-        </Button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                Or continue with
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              Or continue with
-            </span>
-          </div>
-        </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogleLogin}
-          icon={
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -161,17 +184,14 @@ const LoginForm = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-          }
-        >
-          Google
-        </Button>
-      </form>
+            Continue with Google
+          </Button>
+        </form>
 
-      <div className="mt-8 text-center">
-        <p className="text-gray-600">
+        <p className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{" "}
           <Link
-            to="/auth?mode=signup"
+            to="/auth?mode=register"
             className="text-primary-600 hover:text-primary-700 font-medium"
           >
             Sign up

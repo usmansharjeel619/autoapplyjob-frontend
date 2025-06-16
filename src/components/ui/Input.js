@@ -1,107 +1,74 @@
-import React, { forwardRef } from "react";
-import { Eye, EyeOff } from "lucide-react";
+// src/components/ui/Input.js
+import React from "react";
 
-const Input = forwardRef(
-  (
-    {
-      label,
-      type = "text",
-      placeholder,
-      value,
-      onChange,
-      onBlur,
-      error,
-      disabled = false,
-      required = false,
-      icon = null,
-      iconPosition = "left",
-      className = "",
-      ...props
-    },
-    ref
-  ) => {
-    const [showPassword, setShowPassword] = React.useState(false);
-    const [isFocused, setIsFocused] = React.useState(false);
+const Input = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  error,
+  placeholder,
+  icon,
+  rightIcon,
+  disabled = false,
+  required = false,
+  className = "",
+  ...props
+}) => {
+  const handleChange = (e) => {
+    if (onChange) {
+      onChange(e.target.value);
+    }
+  };
 
-    const inputType = type === "password" && showPassword ? "text" : type;
+  return (
+    <div className={`space-y-1 ${className}`}>
+      {label && (
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
 
-    const inputClasses = [
-      "form-input",
-      error ? "border-error" : "",
-      disabled ? "opacity-50 cursor-not-allowed" : "",
-      className,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    const togglePasswordVisibility = () => {
-      setShowPassword(!showPassword);
-    };
-
-    return (
-      <div className="form-group">
-        {label && (
-          <label className="form-label">
-            {label}
-            {required && <span className="text-error ml-1">*</span>}
-          </label>
+      <div className="relative">
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="text-gray-400">{icon}</div>
+          </div>
         )}
 
-        <div className="relative">
-          {icon && iconPosition === "left" && (
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              {icon}
-            </div>
-          )}
-
-          <input
-            ref={ref}
-            type={inputType}
-            placeholder={placeholder}
-            value={value}
-            onChange={onChange}
-            onBlur={(e) => {
-              setIsFocused(false);
-              onBlur?.(e);
-            }}
-            onFocus={() => setIsFocused(true)}
-            disabled={disabled}
-            required={required}
-            className={`${inputClasses} ${
-              icon && iconPosition === "left" ? "pl-10" : ""
-            } ${
-              type === "password"
-                ? "pr-10"
-                : icon && iconPosition === "right"
-                ? "pr-10"
+        <input
+          type={type}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`
+            block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+            placeholder-gray-400 shadow-sm transition-colors
+            focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500
+            disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
+            ${icon ? "pl-10" : ""}
+            ${rightIcon ? "pr-10" : ""}
+            ${
+              error
+                ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                 : ""
-            }`}
-            {...props}
-          />
+            }
+          `}
+          {...props}
+        />
 
-          {icon && iconPosition === "right" && !type === "password" && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              {icon}
-            </div>
-          )}
-
-          {type === "password" && (
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              onClick={togglePasswordVisibility}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          )}
-        </div>
-
-        {error && <span className="form-error">{error}</span>}
+        {rightIcon && (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            {rightIcon}
+          </div>
+        )}
       </div>
-    );
-  }
-);
 
-Input.displayName = "Input";
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </div>
+  );
+};
 
 export default Input;
