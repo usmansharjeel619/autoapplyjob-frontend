@@ -20,8 +20,8 @@ const Select = forwardRef(
     ref
   ) => {
     const selectClasses = [
-      "form-input form-select",
-      error ? "border-error" : "",
+      "block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
+      error ? "border-red-300 focus:border-red-500 focus:ring-red-500" : "",
       disabled ? "opacity-50 cursor-not-allowed" : "",
       className,
     ]
@@ -29,6 +29,8 @@ const Select = forwardRef(
       .join(" ");
 
     const handleChange = (e) => {
+      if (!e || !e.target) return;
+
       if (multiple) {
         const selectedOptions = Array.from(
           e.target.selectedOptions,
@@ -41,11 +43,11 @@ const Select = forwardRef(
     };
 
     return (
-      <div className="form-group">
+      <div className="space-y-1">
         {label && (
-          <label className="form-label">
+          <label className="block text-sm font-medium text-gray-700">
             {label}
-            {required && <span className="text-error ml-1">*</span>}
+            {required && <span className="text-red-500 ml-1">*</span>}
           </label>
         )}
 
@@ -95,7 +97,7 @@ const Select = forwardRef(
           )}
         </div>
 
-        {error && <span className="form-error">{error}</span>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     );
   }

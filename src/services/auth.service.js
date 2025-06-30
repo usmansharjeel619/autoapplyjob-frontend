@@ -247,6 +247,18 @@ const MOCK_USERS = {
     createdAt: "2024-01-01T00:00:00Z",
     lastLogin: new Date().toISOString(),
   },
+  // New User (hasn't completed onboarding)
+  "newuser@example.com": {
+    id: "user-002",
+    email: "newuser@example.com",
+    password: "newuser123456",
+    name: "Jane Smith",
+    userType: "user",
+    onboardingCompleted: false,
+    profilePicture: null,
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  },
 };
 
 // Generate mock JWT token

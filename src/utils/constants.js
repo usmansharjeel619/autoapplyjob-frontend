@@ -31,8 +31,6 @@ export const ONBOARDING_STEPS = {
   BASIC_INFO: "basic_info",
   RESUME_UPLOAD: "resume_upload",
   JOB_PREFERENCES: "job_preferences",
-  SKILLS_SETUP: "skills_setup",
-  AI_TOOLS: "ai_tools",
 };
 
 // Experience Levels

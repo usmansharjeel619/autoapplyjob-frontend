@@ -9,6 +9,10 @@ import {
   Star,
   Users,
   TrendingUp,
+  Play,
+  Phone,
+  Mail,
+  MapPin,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
@@ -32,125 +36,243 @@ const LandingPage = () => {
 
   const features = [
     {
-      icon: <Zap className="text-primary-600" size={24} />,
-      title: "AI-Powered Job Hunting",
+      icon: <Zap className="text-gray-800" size={24} />,
+      title: "AI-Powered Profile Creation",
       description:
-        "Our advanced AI scans thousands of job listings across multiple platforms to find the perfect matches for your profile.",
+        "Our advanced AI creates and optimizes your professional profile to match the best opportunities in your field.",
     },
     {
-      icon: <Target className="text-primary-600" size={24} />,
-      title: "Smart Matching",
+      icon: <Target className="text-gray-800" size={24} />,
+      title: "Smart Job Matching",
       description:
-        "Get personalized job recommendations based on your skills, experience, and preferences with our intelligent matching algorithm.",
+        "We analyze thousands of jobs and match you with the most relevant opportunities based on your skills and preferences.",
     },
     {
-      icon: <Shield className="text-primary-600" size={24} />,
-      title: "Admin Controlled Applications",
+      icon: <Shield className="text-gray-800" size={24} />,
+      title: "Expert Application Management",
       description:
-        "Every application is reviewed and manually submitted by our admin team to ensure quality and avoid spam.",
+        "Our team manually applies to jobs on your behalf, ensuring professional and personalized applications every time.",
     },
   ];
 
-  const benefits = [
-    "Save 10+ hours per week on job searching",
-    "Get matched with relevant opportunities",
-    "Professional application management",
-    "Real-time application tracking",
-    "AI-generated cover letters",
-    "Resume optimization suggestions",
+  const whyChooseUs = [
+    "Professional job application management",
+    "AI-powered CV optimization and updates",
+    "Personal profile creation and maintenance",
+    "Expert job matching and selection",
+    "No need to search jobs yourself",
+    "Dedicated account management",
   ];
 
-  const stats = [
-    { number: "50K+", label: "Jobs Found Daily" },
-    { number: "95%", label: "Match Accuracy" },
-    { number: "10K+", label: "Happy Users" },
-    { number: "24/7", label: "Job Hunting" },
+  const testimonials = [
+    {
+      name: "Ahmed Khan",
+      role: "Software Engineer",
+      content:
+        "AutoApplyJob helped me land my dream job at a top tech company. The AI CV updates were game-changing!",
+      rating: 5,
+    },
+    {
+      name: "Fatima Ali",
+      role: "Marketing Manager",
+      content:
+        "I saved weeks of job searching. The team applied to relevant positions while I focused on interview prep.",
+      rating: 5,
+    },
+    {
+      name: "Hassan Ahmed",
+      role: "Data Analyst",
+      content:
+        "The professional application management gave me confidence. Highly recommend their services!",
+      rating: 5,
+    },
+  ];
+
+  const plans = [
+    {
+      name: "Plan A",
+      price: "3,250",
+      features: [
+        "Basic profile setup",
+        "10 job applications per month",
+        "AI CV updates",
+        "Email support",
+      ],
+    },
+    {
+      name: "Plan B",
+      price: "4,250",
+      popular: true,
+      features: [
+        "Advanced profile optimization",
+        "25 job applications per month",
+        "AI CV updates",
+        "Priority support",
+        "Interview preparation tips",
+      ],
+    },
+    {
+      name: "Plan C",
+      price: "10,450",
+      features: [
+        "Premium profile management",
+        "Unlimited job applications",
+        "AI CV updates",
+        "Dedicated account manager",
+        "Interview preparation",
+        "Salary negotiation support",
+      ],
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-black">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-300">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AA</span>
               </div>
-              <span className="font-bold text-xl text-gray-900">
-                AutoApplyJob
-              </span>
+              <span className="font-bold text-xl text-black">AutoApplyJob</span>
             </div>
 
             <div className="flex items-center gap-4">
               {!isAuthenticated ? (
                 <>
-                  <Link to="/auth?mode=login">
-                    <Button variant="ghost">Sign In</Button>
+                  <Link
+                    to="/auth"
+                    className="text-gray-600 hover:text-black font-medium"
+                  >
+                    Sign In
                   </Link>
-                  <Link to="/auth?mode=signup">
-                    <Button>Get Started</Button>
-                  </Link>
+                  <Button
+                    onClick={handleGetStarted}
+                    className="bg-black hover:bg-gray-800 text-white"
+                  >
+                    Get Started
+                  </Button>
                 </>
               ) : (
-                <Button onClick={handleGetStarted}>Go to Dashboard</Button>
+                <Button
+                  onClick={handleGetStarted}
+                  className="bg-black hover:bg-gray-800 text-white"
+                >
+                  Dashboard
+                </Button>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-50 to-white">
-        <div className="container mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Let AI Find Your
-            <span className="text-primary-600 block">Dream Job</span>
+      {/* Hero Section with Full Screen Image */}
+      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-black to-gray-800">
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="relative z-10 text-center text-white px-6 max-w-4xl">
+          <h1 className="text-6xl md:text-7xl font-bold mb-6">
+            Let Us Find Your
+            <span className="block text-gray-300">Dream Job</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Stop wasting time on endless job applications. Our AI-powered
-            platform hunts for the perfect opportunities while our admin team
-            ensures quality applications that get noticed.
+          <p className="text-xl md:text-2xl mb-8 text-gray-300">
+            Sit back while our experts handle your job applications
+            professionally
           </p>
+          <Button
+            size="lg"
+            onClick={handleGetStarted}
+            className="bg-white text-black hover:bg-gray-100 text-lg px-8 py-4"
+          >
+            Start Your Journey
+            <ArrowRight className="ml-2" size={20} />
+          </Button>
+        </div>
+      </section>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button
-              size="lg"
-              onClick={handleGetStarted}
-              icon={<ArrowRight size={20} />}
-              iconPosition="right"
-            >
-              Start Job Hunting for Free
-            </Button>
-            <Button variant="outline" size="lg">
-              Watch Demo
-            </Button>
+      {/* How It Works */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4">How It Works</h2>
+            <p className="text-xl text-gray-600">
+              Simple steps to your dream job
+            </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-primary-600 mb-1">
-                  {stat.number}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                  1
                 </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div>
+                  <h3 className="text-xl font-semibold text-black mb-2">
+                    Create Your Profile
+                  </h3>
+                  <p className="text-gray-600">
+                    Upload your CV and fill out your preferences. Our AI will
+                    optimize everything.
+                  </p>
+                </div>
               </div>
-            ))}
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                  2
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-black mb-2">
+                    We Find Jobs
+                  </h3>
+                  <p className="text-gray-600">
+                    Our team searches and selects the best job opportunities
+                    that match your profile.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                  3
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-black mb-2">
+                    We Apply For You
+                  </h3>
+                  <p className="text-gray-600">
+                    Our experts apply to jobs professionally on your behalf with
+                    personalized applications.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="bg-black rounded-lg p-8 text-center">
+                <Play className="text-white mx-auto mb-4" size={64} />
+                <p className="text-white text-lg mb-4">Watch How It Works</p>
+                <Button
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-black"
+                >
+                  Play Video
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20">
+      {/* Why Choose Us */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              How AutoApplyJob Works
+            <h2 className="text-4xl font-bold text-black mb-4">
+              Why Choose Us
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our intelligent platform combines AI automation with human
-              oversight to deliver the best job hunting experience.
+            <p className="text-xl text-gray-600">
+              The advantages of working with AutoApplyJob
             </p>
           </div>
 
@@ -158,168 +280,239 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="text-center p-8 hover:shadow-lg transition-shadow"
+                className="border-gray-200 hover:shadow-lg transition-shadow"
               >
-                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  {feature.icon}
+                <Card.Body className="p-8 text-center">
+                  <div className="mb-4">{feature.icon}</div>
+                  <h3 className="text-xl font-semibold text-black mb-4">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-black text-center mb-8">
+              What You Get
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+              {whyChooseUs.map((benefit, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="text-black flex-shrink-0" size={20} />
+                  <span className="text-gray-700">{benefit}</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600">{feature.description}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4">
+              Choose Your Plan
+            </h2>
+            <p className="text-xl text-gray-600">
+              Select the perfect plan for your job search needs
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {plans.map((plan, index) => (
+              <Card
+                key={index}
+                className={`relative ${
+                  plan.popular ? "border-black border-2" : "border-gray-200"
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-medium">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
+                <Card.Body className="p-8 text-center">
+                  <h3 className="text-2xl font-bold text-black mb-2">
+                    {plan.name}
+                  </h3>
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-black">
+                      Rs. {plan.price}
+                    </span>
+                    <span className="text-gray-600">/month</span>
+                  </div>
+                  <div className="space-y-3 mb-8">
+                    {plan.features.map((feature, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <CheckCircle
+                          className="text-black flex-shrink-0"
+                          size={16}
+                        />
+                        <span className="text-gray-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    className={`w-full ${
+                      plan.popular
+                        ? "bg-black hover:bg-gray-800 text-white"
+                        : "border border-black text-black hover:bg-black hover:text-white"
+                    }`}
+                    variant={plan.popular ? "default" : "outline"}
+                  >
+                    Choose {plan.name}
+                  </Button>
+                </Card.Body>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Why Choose AutoApplyJob?
-              </h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Transform your job search from a time-consuming chore into an
-                efficient, automated process that works around the clock.
-              </p>
-
-              <div className="space-y-4">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle
-                      className="text-green-500 flex-shrink-0"
-                      size={20}
-                    />
-                    <span className="text-gray-700">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8">
-                <Button
-                  size="lg"
-                  onClick={handleGetStarted}
-                  icon={<ArrowRight size={20} />}
-                  iconPosition="right"
-                >
-                  Get Started Today
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative">
-              <img
-                src="/api/placeholder/600/400"
-                alt="Dashboard Preview"
-                className="rounded-lg shadow-2xl"
-              />
-              <div className="absolute -top-4 -right-4 bg-white rounded-lg shadow-lg p-4">
-                <div className="flex items-center gap-2 text-green-600">
-                  <TrendingUp size={20} />
-                  <span className="font-semibold">Jobs Found: 247</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20">
+      {/* Client Feedback */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Loved by Job Seekers
+            <h2 className="text-4xl font-bold text-black mb-4">
+              Client Feedback
             </h2>
             <p className="text-xl text-gray-600">
-              See what our users say about their success with AutoApplyJob
+              What our clients say about us
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className="text-yellow-400 fill-current"
-                      size={16}
-                    />
-                  ))}
-                </div>
-                <p className="text-gray-600 mb-4">
-                  "AutoApplyJob helped me land my dream job in just 2 weeks. The
-                  AI found opportunities I never would have discovered on my
-                  own!"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                  <div>
-                    <div className="font-semibold text-gray-900">
-                      Sarah Johnson
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Software Engineer
-                    </div>
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-gray-200">
+                <Card.Body className="p-8">
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="text-black fill-current"
+                        size={20}
+                      />
+                    ))}
                   </div>
-                </div>
+                  <p className="text-gray-700 mb-6 italic">
+                    "{testimonial.content}"
+                  </p>
+                  <div>
+                    <p className="font-semibold text-black">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
+                  </div>
+                </Card.Body>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-4">
-            Ready to Transform Your Job Search?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of successful job seekers who found their perfect
-            role with AutoApplyJob
-          </p>
+      {/* Contact Us */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4">Contact Us</h2>
+            <p className="text-xl text-gray-600">Get in touch with our team</p>
+          </div>
 
-          <Button
-            size="lg"
-            variant="secondary"
-            onClick={handleGetStarted}
-            className="bg-white text-primary-600 hover:bg-gray-100"
-          >
-            Start Your Free Job Hunt
-          </Button>
-
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm opacity-80">
-            <div className="flex items-center gap-2">
-              <Users size={16} />
-              <span>10,000+ active users</span>
+          <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div>
+              <h3 className="text-2xl font-bold text-black mb-8">
+                Send us a message
+              </h3>
+              <form className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    rows="5"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Your message"
+                  ></textarea>
+                </div>
+                <Button className="w-full bg-black hover:bg-gray-800 text-white">
+                  Send Message
+                </Button>
+              </form>
             </div>
-            <div className="flex items-center gap-2">
-              <Shield size={16} />
-              <span>100% secure & private</span>
+
+            <div>
+              <h3 className="text-2xl font-bold text-black mb-8">
+                Get in touch
+              </h3>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Phone className="text-black" size={24} />
+                  <div>
+                    <p className="font-medium text-black">Phone</p>
+                    <p className="text-gray-600">+92 300 1234567</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Mail className="text-black" size={24} />
+                  <div>
+                    <p className="font-medium text-black">Email</p>
+                    <p className="text-gray-600">info@autoapplyjob.com</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <MapPin className="text-black" size={24} />
+                  <div>
+                    <p className="font-medium text-black">Address</p>
+                    <p className="text-gray-600">
+                      Rawalpindi, Punjab, Pakistan
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-black text-white py-12">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">AA</span>
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-black font-bold text-sm">AA</span>
                 </div>
                 <span className="font-bold text-xl">AutoApplyJob</span>
               </div>
               <p className="text-gray-400">
-                Revolutionizing job applications with AI-powered automation and
-                human oversight.
+                Professional job application management service helping you land
+                your dream job.
               </p>
             </div>
 
@@ -328,7 +521,7 @@ const LandingPage = () => {
               <div className="space-y-2 text-gray-400">
                 <div>Features</div>
                 <div>Pricing</div>
-                <div>Demo</div>
+                <div>How it Works</div>
               </div>
             </div>
 

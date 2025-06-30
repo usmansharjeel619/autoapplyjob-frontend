@@ -1,4 +1,3 @@
-// src/components/ui/Input.js
 import React from "react";
 
 const Input = ({
@@ -17,7 +16,7 @@ const Input = ({
 }) => {
   const handleChange = (e) => {
     if (onChange) {
-      onChange(e.target.value);
+      onChange(e);
     }
   };
 
@@ -46,7 +45,7 @@ const Input = ({
           className={`
             block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
             placeholder-gray-400 shadow-sm transition-colors
-            focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500
+            focus:border-black focus:outline-none focus:ring-1 focus:ring-black
             disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
             ${icon ? "pl-10" : ""}
             ${rightIcon ? "pr-10" : ""}

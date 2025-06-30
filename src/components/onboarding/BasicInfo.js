@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { EXPERIENCE_LEVELS, EDUCATION_LEVELS } from "../../utils/constants";
 import { basicInfoValidation } from "../../utils/validation";
 import Button from "../ui/Button";
@@ -24,9 +24,13 @@ const BasicInfo = ({
   });
   const [errors, setErrors] = useState({});
 
+  // Memoized callback to prevent infinite loops
+  const memoizedOnDataChange = useCallback(onDataChange, []);
+
+  // Only call onDataChange when formData actually changes
   useEffect(() => {
-    onDataChange(formData);
-  }, [formData, onDataChange]);
+    memoizedOnDataChange(formData);
+  }, [formData, memoizedOnDataChange]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

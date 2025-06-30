@@ -32,11 +32,6 @@ const Sidebar = ({ isAdmin = false }) => {
       path: "/profile",
     },
     {
-      label: "Jobs",
-      icon: Briefcase,
-      path: "/jobs",
-    },
-    {
       label: "AI Tools",
       icon: Wrench,
       path: "/tools",

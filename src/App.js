@@ -16,6 +16,8 @@ import AdminApplicants from "./pages/admin/Applicants";
 import AdminApplications from "./pages/admin/Applications";
 import AdminAnalytics from "./pages/admin/Analytics";
 import Layout from "./components/layout/Layout";
+import PaymentPage from "./pages/PaymentPage";
+
 import "./App.css";
 
 function App() {
@@ -38,6 +40,14 @@ function App() {
                   </AuthGuard>
                 }
               />
+              <Route
+                path="/payment"
+                element={
+                  <AuthGuard>
+                    <PaymentPage />
+                  </AuthGuard>
+                }
+              />
 
               <Route
                 path="/dashboard"
@@ -56,17 +66,6 @@ function App() {
                   <AuthGuard>
                     <Layout>
                       <UserProfile />
-                    </Layout>
-                  </AuthGuard>
-                }
-              />
-
-              <Route
-                path="/jobs"
-                element={
-                  <AuthGuard>
-                    <Layout>
-                      <UserJobs />
                     </Layout>
                   </AuthGuard>
                 }
