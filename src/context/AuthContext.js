@@ -1,286 +1,207 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
+import authService from "../services/auth.service";
+import userService from "../services/user.service";
+import { STORAGE_KEYS } from "../utils/constants";
 import {
   getStorageItem,
   setStorageItem,
   removeStorageItem,
 } from "../utils/helpers";
-import { STORAGE_KEYS, USER_TYPES } from "../utils/constants";
-import authService from "../services/auth.service";
 
-// Initial state
-const initialState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
-  isLoading: true,
-  error: null,
-};
+const AuthContext = createContext();
 
-// Action types
-const AUTH_ACTIONS = {
-  LOGIN_START: "LOGIN_START",
-  LOGIN_SUCCESS: "LOGIN_SUCCESS",
-  LOGIN_FAILURE: "LOGIN_FAILURE",
-  LOGOUT: "LOGOUT",
-  REGISTER_START: "REGISTER_START",
-  REGISTER_SUCCESS: "REGISTER_SUCCESS",
-  REGISTER_FAILURE: "REGISTER_FAILURE",
-  UPDATE_USER: "UPDATE_USER",
-  SET_LOADING: "SET_LOADING",
-  CLEAR_ERROR: "CLEAR_ERROR",
-};
-
-// Reducer
 const authReducer = (state, action) => {
   switch (action.type) {
-    case AUTH_ACTIONS.LOGIN_START:
-    case AUTH_ACTIONS.REGISTER_START:
-      return {
-        ...state,
-        isLoading: true,
-        error: null,
-      };
+    case "LOGIN_START":
+      return { ...state, loading: true, error: null };
 
-    case AUTH_ACTIONS.LOGIN_SUCCESS:
-    case AUTH_ACTIONS.REGISTER_SUCCESS:
+    case "LOGIN_SUCCESS":
       return {
         ...state,
+        loading: false,
+        isAuthenticated: true,
         user: action.payload.user,
         token: action.payload.token,
-        isAuthenticated: true,
-        isLoading: false,
         error: null,
       };
 
-    case AUTH_ACTIONS.LOGIN_FAILURE:
-    case AUTH_ACTIONS.REGISTER_FAILURE:
+    case "LOGIN_FAILURE":
       return {
         ...state,
+        loading: false,
+        isAuthenticated: false,
         user: null,
         token: null,
-        isAuthenticated: false,
-        isLoading: false,
         error: action.payload,
       };
 
-    case AUTH_ACTIONS.LOGOUT:
+    case "LOGOUT":
       return {
         ...state,
+        isAuthenticated: false,
         user: null,
         token: null,
-        isAuthenticated: false,
-        isLoading: false,
+        loading: false,
         error: null,
       };
 
-    case AUTH_ACTIONS.UPDATE_USER:
+    case "UPDATE_USER":
       return {
         ...state,
         user: { ...state.user, ...action.payload },
       };
 
-    case AUTH_ACTIONS.SET_LOADING:
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-
-    case AUTH_ACTIONS.CLEAR_ERROR:
-      return {
-        ...state,
-        error: null,
-      };
+    case "SET_LOADING":
+      return { ...state, loading: action.payload };
 
     default:
       return state;
   }
 };
 
-// Create context
-const AuthContext = createContext();
+const initialState = {
+  isAuthenticated: false,
+  user: null,
+  token: null,
+  loading: true,
+  error: null,
+};
 
-// Provider component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from storage
   useEffect(() => {
     const initializeAuth = async () => {
-      try {
-        const token = getStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-        const userData = getStorageItem(STORAGE_KEYS.USER_DATA);
+      const token = getStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+      const userData = getStorageItem(STORAGE_KEYS.USER_DATA);
 
-        if (token && userData) {
+      if (token && userData) {
+        try {
           // Verify token is still valid
           const isValid = await authService.verifyToken(token);
 
           if (isValid) {
+            // Get fresh user data
+            const freshUserData = await userService.getProfile();
+
             dispatch({
-              type: AUTH_ACTIONS.LOGIN_SUCCESS,
-              payload: { user: userData, token },
+              type: "LOGIN_SUCCESS",
+              payload: {
+                user: freshUserData,
+                token,
+              },
             });
           } else {
-            // Token is invalid, clear storage
-            removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-            removeStorageItem(STORAGE_KEYS.USER_DATA);
+            // Token expired, clear storage
+            clearAuthData();
           }
+        } catch (error) {
+          console.error("Auth initialization error:", error);
+          clearAuthData();
         }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-        removeStorageItem(STORAGE_KEYS.USER_DATA);
-      } finally {
-        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
       }
+
+      dispatch({ type: "SET_LOADING", payload: false });
     };
 
     initializeAuth();
   }, []);
 
-  // Login function
+  const clearAuthData = () => {
+    removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+    removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+    removeStorageItem(STORAGE_KEYS.USER_DATA);
+    dispatch({ type: "LOGOUT" });
+  };
+
   const login = async (credentials) => {
-    dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+    dispatch({ type: "LOGIN_START" });
 
     try {
       const response = await authService.login(credentials);
-      const { user, token } = response.data;
+      const { user, token, refreshToken } = response;
 
-      // Store in localStorage
+      // Store auth data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       setStorageItem(STORAGE_KEYS.USER_DATA, user);
 
       dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        type: "LOGIN_SUCCESS",
         payload: { user, token },
       });
 
-      return { success: true, user };
+      return response;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Login failed";
       dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage,
+        type: "LOGIN_FAILURE",
+        payload: error.response?.data?.message || "Login failed",
       });
-      return { success: false, error: errorMessage };
+      throw error;
     }
   };
 
-  // Register function
   const register = async (userData) => {
-    dispatch({ type: AUTH_ACTIONS.REGISTER_START });
+    dispatch({ type: "LOGIN_START" });
 
     try {
       const response = await authService.register(userData);
-      const { user, token } = response.data;
+      const { user, token, refreshToken } = response;
 
-      // Store in localStorage
+      // Store auth data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       setStorageItem(STORAGE_KEYS.USER_DATA, user);
 
       dispatch({
-        type: AUTH_ACTIONS.REGISTER_SUCCESS,
+        type: "LOGIN_SUCCESS",
         payload: { user, token },
       });
 
-      return { success: true, user };
+      return response;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Registration failed";
       dispatch({
-        type: AUTH_ACTIONS.REGISTER_FAILURE,
-        payload: errorMessage,
+        type: "LOGIN_FAILURE",
+        payload: error.response?.data?.message || "Registration failed",
       });
-      return { success: false, error: errorMessage };
+      throw error;
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await authService.logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Clear storage regardless of API call result
-      removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-      removeStorageItem(STORAGE_KEYS.USER_DATA);
-      removeStorageItem(STORAGE_KEYS.ONBOARDING_PROGRESS);
-
-      dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      clearAuthData();
     }
   };
 
-  // Update user function
-  const updateUser = async (userData) => {
-    try {
-      const response = await authService.updateProfile(userData);
-      const updatedUser = response.data;
+  const updateUser = (userData) => {
+    dispatch({ type: "UPDATE_USER", payload: userData });
 
-      // Update localStorage
-      setStorageItem(STORAGE_KEYS.USER_DATA, updatedUser);
-
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_USER,
-        payload: updatedUser,
-      });
-
-      return { success: true, user: updatedUser };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Update failed";
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // Clear error function
-  const clearError = () => {
-    dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
-  };
-
-  // Check if user is admin
-  const isAdmin = () => {
-    return state.user?.userType === USER_TYPES.ADMIN;
-  };
-
-  // Check if user has completed onboarding
-  const hasCompletedOnboarding = () => {
-    return state.user?.onboardingCompleted || false;
-  };
-
-  // Get user's full name
-  const getUserDisplayName = () => {
-    if (!state.user) return "";
-    return state.user.name || state.user.email || "User";
+    // Update storage
+    const updatedUser = { ...state.user, ...userData };
+    setStorageItem(STORAGE_KEYS.USER_DATA, updatedUser);
   };
 
   const value = {
-    // State
     ...state,
-
-    // Actions
     login,
     register,
     logout,
     updateUser,
-    clearError,
-
-    // Helpers
-    isAdmin,
-    hasCompletedOnboarding,
-    getUserDisplayName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
-
   return context;
 };
-
-export default AuthContext;

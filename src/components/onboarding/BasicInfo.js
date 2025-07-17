@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { EXPERIENCE_LEVELS, EDUCATION_LEVELS } from "../../utils/constants";
 import { basicInfoValidation } from "../../utils/validation";
+import userService from "../../services/user.service";
+import { useApp } from "../../context/AppContext";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
@@ -13,6 +15,7 @@ const BasicInfo = ({
   isFirst,
   isLast,
 }) => {
+  const { showError } = useApp();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,11 +26,10 @@ const BasicInfo = ({
     ...data,
   });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
-  // Memoized callback to prevent infinite loops
   const memoizedOnDataChange = useCallback(onDataChange, []);
 
-  // Only call onDataChange when formData actually changes
   useEffect(() => {
     memoizedOnDataChange(formData);
   }, [formData, memoizedOnDataChange]);
@@ -35,13 +37,12 @@ const BasicInfo = ({
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate form
@@ -51,7 +52,19 @@ const BasicInfo = ({
       return;
     }
 
-    onNext();
+    try {
+      setSaving(true);
+
+      // Save to backend
+      await userService.completeOnboardingStep("basic_info", formData);
+
+      onNext();
+    } catch (error) {
+      showError("Failed to save basic information");
+      console.error("Basic info save error:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -90,7 +103,7 @@ const BasicInfo = ({
         <Input
           label="Current Job Title"
           type="text"
-          placeholder="e.g., Software Developer"
+          placeholder="Enter your current or desired job title"
           value={formData.currentJobTitle}
           onChange={(e) => handleInputChange("currentJobTitle", e.target.value)}
           error={errors.currentJobTitle}
@@ -98,34 +111,41 @@ const BasicInfo = ({
         />
 
         <Select
-          label="Years of Experience"
-          options={EXPERIENCE_LEVELS}
+          label="Experience Level"
           value={formData.experienceLevel}
-          onChange={(value) => handleInputChange("experienceLevel", value)}
+          onChange={(e) => handleInputChange("experienceLevel", e.target.value)}
           error={errors.experienceLevel}
           required
+          options={[
+            { value: "", label: "Select your experience level" },
+            ...EXPERIENCE_LEVELS,
+          ]}
         />
 
         <Select
-          label="Highest Education Level"
-          options={EDUCATION_LEVELS}
+          label="Education Level"
           value={formData.educationLevel}
-          onChange={(value) => handleInputChange("educationLevel", value)}
+          onChange={(e) => handleInputChange("educationLevel", e.target.value)}
           error={errors.educationLevel}
           required
+          options={[
+            { value: "", label: "Select your education level" },
+            ...EDUCATION_LEVELS,
+          ]}
         />
       </div>
 
       <div className="flex justify-between pt-6">
-        <div>
-          {!isFirst && (
-            <Button type="button" variant="outline" onClick={onBack}>
-              Back
-            </Button>
-          )}
+        {!isFirst && (
+          <Button type="button" variant="outline" onClick={onBack}>
+            Back
+          </Button>
+        )}
+        <div className={isFirst ? "ml-auto" : ""}>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving..." : isLast ? "Complete" : "Next"}
+          </Button>
         </div>
-
-        <Button type="submit">{isLast ? "Complete Setup" : "Next Step"}</Button>
       </div>
     </form>
   );

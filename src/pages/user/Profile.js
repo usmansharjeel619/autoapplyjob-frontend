@@ -5,31 +5,33 @@ import {
   Phone,
   MapPin,
   Briefcase,
-  GraduationCap,
+  FileText,
+  Edit,
+  Save,
   Upload,
   Download,
-  Edit3,
-  Save,
   X,
-  FileText,
-  Award,
-  Target,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useApp } from "../../context/AppContext";
-import { EXPERIENCE_LEVELS, EDUCATION_LEVELS } from "../../utils/constants";
-import { basicInfoValidation } from "../../utils/validation";
+import userService from "../../services/user.service";
+import {
+  EXPERIENCE_LEVELS,
+  EDUCATION_LEVELS,
+  COMMON_SKILLS,
+} from "../../utils/constants";
 import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
-import Card from "../../components/ui/Card";
-import ProgressBar from "../../components/ui/ProgressBar";
 
-const Profile = () => {
+const UserProfile = () => {
   const { user, updateUser } = useAuth();
   const { showSuccess, showError } = useApp();
   const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -38,166 +40,209 @@ const Profile = () => {
     currentJobTitle: "",
     experienceLevel: "",
     educationLevel: "",
-    bio: "",
     skills: [],
-    certifications: [],
-    ...user,
+    bio: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    portfolioUrl: "",
   });
-  const [errors, setErrors] = useState({});
-  const [completionScore, setCompletionScore] = useState(0);
 
   useEffect(() => {
-    calculateCompletionScore();
-  }, [profileData]);
-
-  const calculateCompletionScore = () => {
-    const fields = [
-      "name",
-      "email",
-      "phone",
-      "location",
-      "currentJobTitle",
-      "experienceLevel",
-      "educationLevel",
-      "bio",
-    ];
-    const filledFields = fields.filter((field) => profileData[field]?.trim());
-    const skillsScore = profileData.skills?.length > 0 ? 1 : 0;
-    const certScore = profileData.certifications?.length > 0 ? 1 : 0;
-
-    const totalScore =
-      ((filledFields.length + skillsScore + certScore) / (fields.length + 2)) *
-      100;
-    setCompletionScore(Math.round(totalScore));
-  };
+    if (user) {
+      setProfileData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        location: user.location || "",
+        currentJobTitle: user.currentJobTitle || "",
+        experienceLevel: user.experienceLevel || "",
+        educationLevel: user.educationLevel || "",
+        skills: user.skills || [],
+        bio: user.bio || "",
+        linkedinUrl: user.linkedinUrl || "",
+        githubUrl: user.githubUrl || "",
+        portfolioUrl: user.portfolioUrl || "",
+      });
+    }
+  }, [user]);
 
   const handleInputChange = (field, value) => {
     setProfileData((prev) => ({ ...prev, [field]: value }));
+  };
 
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+  const handleSkillAdd = (skill) => {
+    if (skill && !profileData.skills.includes(skill)) {
+      setProfileData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, skill],
+      }));
     }
   };
 
-  const handleSave = async () => {
-    // Validate form
-    const validation = basicInfoValidation.validate(profileData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      return;
-    }
+  const handleSkillRemove = (skillToRemove) => {
+    setProfileData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
+    }));
+  };
 
-    setLoading(true);
+  const handleSave = async () => {
     try {
-      await updateUser(profileData);
-      showSuccess("Profile updated successfully!");
-      setEditMode(false);
+      setLoading(true);
+      const updatedUser = await userService.updateProfile(profileData);
+      updateUser(updatedUser);
+      setEditing(false);
+      showSuccess("Profile updated successfully");
     } catch (error) {
-      showError("Failed to update profile. Please try again.");
+      showError("Failed to update profile");
+      console.error("Profile update error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleResumeUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      showError("Please upload a PDF, DOC, or DOCX file");
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showError("File size must be less than 5MB");
+      return;
+    }
+
+    try {
+      setUploadingResume(true);
+      setUploadProgress(0);
+
+      await userService.uploadResume(file, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      showSuccess("Resume uploaded successfully");
+      // Refresh user data to get updated resume info
+      const updatedProfile = await userService.getProfile();
+      updateUser(updatedProfile);
+    } catch (error) {
+      showError("Failed to upload resume");
+      console.error("Resume upload error:", error);
+    } finally {
+      setUploadingResume(false);
+      setUploadProgress(0);
+    }
+  };
+
   const handleCancel = () => {
-    setProfileData({ ...user });
-    setEditMode(false);
-    setErrors({});
-  };
-
-  const handleResumeUpload = () => {
-    // TODO: Implement resume upload
-    showSuccess("Resume upload feature coming soon!");
-  };
-
-  const handleResumeDownload = () => {
-    // TODO: Implement resume download
-    showSuccess("Resume download feature coming soon!");
+    setEditing(false);
+    // Reset to original user data
+    if (user) {
+      setProfileData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        location: user.location || "",
+        currentJobTitle: user.currentJobTitle || "",
+        experienceLevel: user.experienceLevel || "",
+        educationLevel: user.educationLevel || "",
+        skills: user.skills || [],
+        bio: user.bio || "",
+        linkedinUrl: user.linkedinUrl || "",
+        githubUrl: user.githubUrl || "",
+        portfolioUrl: user.portfolioUrl || "",
+      });
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your personal information and preferences
+          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+          <p className="text-gray-600">
+            Manage your personal information and job preferences
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {editMode ? (
+        <div className="flex items-center space-x-3">
+          {editing ? (
             <>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                icon={<X size={16} />}
-              >
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button
-                onClick={handleSave}
-                loading={loading}
-                icon={<Save size={16} />}
-              >
-                Save Changes
+              <Button onClick={handleSave} disabled={loading}>
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? "Saving..." : "Save Changes"}
               </Button>
             </>
           ) : (
-            <Button
-              onClick={() => setEditMode(true)}
-              icon={<Edit3 size={16} />}
-            >
+            <Button onClick={() => setEditing(true)}>
+              <Edit className="w-4 h-4 mr-2" />
               Edit Profile
             </Button>
           )}
         </div>
       </div>
 
-      {/* Profile Completion */}
-      <Card>
-        <Card.Body>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Profile Completion
-            </h3>
-            <span className="text-sm font-medium text-primary-600">
-              {completionScore}%
-            </span>
-          </div>
-          <ProgressBar
-            value={completionScore}
-            variant={
-              completionScore >= 80
-                ? "success"
-                : completionScore >= 50
-                ? "warning"
-                : "error"
-            }
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            {completionScore >= 80
-              ? "Great! Your profile is well-optimized for job matching."
-              : completionScore >= 50
-              ? "Good start! Add more details to improve your job matches."
-              : "Complete your profile to get better job recommendations."}
-          </p>
-        </Card.Body>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Picture and Basic Info */}
+        <Card>
+          <Card.Body className="text-center">
+            <div className="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <User className="w-12 h-12 text-gray-400" />
+              )}
+            </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main Profile Information */}
+            <h3 className="text-lg font-semibold text-gray-900">
+              {user?.name}
+            </h3>
+            <p className="text-gray-600">
+              {user?.currentJobTitle || "Job Seeker"}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">{user?.location}</p>
+
+            {/* Profile Completeness */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span>Profile Completeness</span>
+                <span>{user?.profileCompleteness || 0}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${user?.profileCompleteness || 0}%` }}
+                ></div>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+
+        {/* Main Profile Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
+          {/* Personal Information */}
           <Card>
             <Card.Header>
-              <div className="flex items-center gap-2">
-                <User className="text-primary-600" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Basic Information
-                </h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Personal Information
+              </h3>
             </Card.Header>
             <Card.Body>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,9 +250,8 @@ const Profile = () => {
                   label="Full Name"
                   value={profileData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  error={errors.name}
-                  disabled={!editMode}
-                  required
+                  disabled={!editing}
+                  icon={<User className="w-4 h-4" />}
                 />
 
                 <Input
@@ -215,10 +259,8 @@ const Profile = () => {
                   type="email"
                   value={profileData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  error={errors.email}
-                  disabled={!editMode}
-                  icon={<Mail size={16} />}
-                  required
+                  disabled={!editing}
+                  icon={<Mail className="w-4 h-4" />}
                 />
 
                 <Input
@@ -226,10 +268,8 @@ const Profile = () => {
                   type="tel"
                   value={profileData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  error={errors.phone}
-                  disabled={!editMode}
-                  icon={<Phone size={16} />}
-                  required
+                  disabled={!editing}
+                  icon={<Phone className="w-4 h-4" />}
                 />
 
                 <Input
@@ -238,8 +278,8 @@ const Profile = () => {
                   onChange={(e) =>
                     handleInputChange("location", e.target.value)
                   }
-                  disabled={!editMode}
-                  icon={<MapPin size={16} />}
+                  disabled={!editing}
+                  icon={<MapPin className="w-4 h-4" />}
                   placeholder="City, State/Country"
                 />
               </div>
@@ -249,63 +289,60 @@ const Profile = () => {
           {/* Professional Information */}
           <Card>
             <Card.Header>
-              <div className="flex items-center gap-2">
-                <Briefcase className="text-primary-600" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Professional Information
-                </h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Professional Information
+              </h3>
             </Card.Header>
             <Card.Body>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Current Job Title"
                   value={profileData.currentJobTitle}
                   onChange={(e) =>
                     handleInputChange("currentJobTitle", e.target.value)
                   }
-                  error={errors.currentJobTitle}
-                  disabled={!editMode}
-                  placeholder="e.g., Senior Software Engineer"
-                  required
+                  disabled={!editing}
+                  icon={<Briefcase className="w-4 h-4" />}
                 />
 
                 <Select
-                  label="Years of Experience"
-                  options={EXPERIENCE_LEVELS}
+                  label="Experience Level"
                   value={profileData.experienceLevel}
-                  onChange={(value) =>
-                    handleInputChange("experienceLevel", value)
+                  onChange={(e) =>
+                    handleInputChange("experienceLevel", e.target.value)
                   }
-                  error={errors.experienceLevel}
-                  disabled={!editMode}
-                  required
+                  disabled={!editing}
+                  options={[
+                    { value: "", label: "Select experience level" },
+                    ...EXPERIENCE_LEVELS,
+                  ]}
                 />
-              </div>
 
-              <div className="mb-6">
                 <Select
                   label="Education Level"
-                  options={EDUCATION_LEVELS}
                   value={profileData.educationLevel}
-                  onChange={(value) =>
-                    handleInputChange("educationLevel", value)
+                  onChange={(e) =>
+                    handleInputChange("educationLevel", e.target.value)
                   }
-                  error={errors.educationLevel}
-                  disabled={!editMode}
-                  required
+                  disabled={!editing}
+                  options={[
+                    { value: "", label: "Select education level" },
+                    ...EDUCATION_LEVELS,
+                  ]}
                 />
               </div>
 
-              <div>
-                <label className="form-label">Professional Bio</label>
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bio
+                </label>
                 <textarea
-                  className="form-input form-textarea"
-                  placeholder="Tell us about your professional background, achievements, and career goals..."
-                  value={profileData.bio || ""}
+                  value={profileData.bio}
                   onChange={(e) => handleInputChange("bio", e.target.value)}
-                  disabled={!editMode}
+                  disabled={!editing}
                   rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  placeholder="Tell us about yourself, your experience, and career goals..."
                 />
               </div>
             </Card.Body>
@@ -314,219 +351,186 @@ const Profile = () => {
           {/* Skills */}
           <Card>
             <Card.Header>
-              <div className="flex items-center gap-2">
-                <Target className="text-primary-600" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">Skills</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Skills</h3>
             </Card.Header>
             <Card.Body>
-              {profileData.skills && profileData.skills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {profileData.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-primary-100 text-primary-800 rounded-md text-sm font-medium"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+              {editing && (
+                <div className="mb-4">
+                  <Select
+                    placeholder="Add a skill..."
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleSkillAdd(e.target.value);
+                        e.target.value = "";
+                      }
+                    }}
+                    options={[
+                      { value: "", label: "Select a skill to add" },
+                      ...COMMON_SKILLS.map((skill) => ({
+                        value: skill,
+                        label: skill,
+                      })),
+                    ]}
+                  />
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Target className="mx-auto text-gray-400 mb-4" size={48} />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    No skills added
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    Add your skills to improve job matching
-                  </p>
-                  <Button variant="outline">Add Skills</Button>
-                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                {profileData.skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                  >
+                    {skill}
+                    {editing && (
+                      <button
+                        onClick={() => handleSkillRemove(skill)}
+                        className="ml-2 text-blue-600 hover:text-blue-800"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </div>
+
+              {profileData.skills.length === 0 && (
+                <p className="text-gray-500 text-sm">
+                  {editing
+                    ? "Add skills to improve job matching"
+                    : "No skills added yet"}
+                </p>
               )}
             </Card.Body>
           </Card>
 
-          {/* Certifications */}
-          <Card>
-            <Card.Header>
-              <div className="flex items-center gap-2">
-                <Award className="text-primary-600" size={20} />
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Certifications
-                </h3>
-              </div>
-            </Card.Header>
-            <Card.Body>
-              {profileData.certifications &&
-              profileData.certifications.length > 0 ? (
-                <div className="space-y-3">
-                  {profileData.certifications.map((cert, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <Award className="text-green-600" size={20} />
-                      <span className="font-medium text-gray-900">{cert}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Award className="mx-auto text-gray-400 mb-4" size={48} />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    No certifications added
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    Add your professional certifications
-                  </p>
-                  <Button variant="outline">Add Certifications</Button>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Profile Picture */}
+          {/* Social Links */}
           <Card>
             <Card.Header>
               <h3 className="text-lg font-semibold text-gray-900">
-                Profile Picture
+                Social Links
               </h3>
             </Card.Header>
             <Card.Body>
-              <div className="text-center">
-                <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-primary-800 font-bold text-2xl">
-                    {profileData.name
-                      ? profileData.name.charAt(0).toUpperCase()
-                      : "U"}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={<Upload size={16} />}
-                  disabled={!editMode}
-                >
-                  Upload Photo
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
+              <div className="space-y-4">
+                <Input
+                  label="LinkedIn URL"
+                  type="url"
+                  value={profileData.linkedinUrl}
+                  onChange={(e) =>
+                    handleInputChange("linkedinUrl", e.target.value)
+                  }
+                  disabled={!editing}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                />
 
-          {/* Resume */}
-          <Card>
-            <Card.Header>
-              <h3 className="text-lg font-semibold text-gray-900">Resume</h3>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <FileText className="text-blue-600" size={20} />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">
-                      Current Resume
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Last updated 2 days ago
-                    </p>
-                  </div>
-                </div>
+                <Input
+                  label="GitHub URL"
+                  type="url"
+                  value={profileData.githubUrl}
+                  onChange={(e) =>
+                    handleInputChange("githubUrl", e.target.value)
+                  }
+                  disabled={!editing}
+                  placeholder="https://github.com/yourusername"
+                />
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<Upload size={16} />}
-                    onClick={handleResumeUpload}
-                    className="flex-1"
-                  >
-                    Update
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<Download size={16} />}
-                    onClick={handleResumeDownload}
-                    className="flex-1"
-                  >
-                    Download
-                  </Button>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-
-          {/* Account Settings */}
-          <Card>
-            <Card.Header>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Account Settings
-              </h3>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">
-                    Email Notifications
-                  </span>
-                  <input type="checkbox" defaultChecked className="rounded" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">
-                    SMS Notifications
-                  </span>
-                  <input type="checkbox" className="rounded" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">
-                    Profile Visibility
-                  </span>
-                  <select className="text-sm border rounded px-2 py-1">
-                    <option>Public</option>
-                    <option>Private</option>
-                  </select>
-                </div>
-              </div>
-            </Card.Body>
-          </Card>
-
-          {/* Quick Stats */}
-          <Card>
-            <Card.Header>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Profile Stats
-              </h3>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Profile Views</span>
-                  <span className="text-sm font-medium">47</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Job Matches</span>
-                  <span className="text-sm font-medium">156</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Applications</span>
-                  <span className="text-sm font-medium">23</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Response Rate</span>
-                  <span className="text-sm font-medium text-green-600">
-                    68%
-                  </span>
-                </div>
+                <Input
+                  label="Portfolio URL"
+                  type="url"
+                  value={profileData.portfolioUrl}
+                  onChange={(e) =>
+                    handleInputChange("portfolioUrl", e.target.value)
+                  }
+                  disabled={!editing}
+                  placeholder="https://yourportfolio.com"
+                />
               </div>
             </Card.Body>
           </Card>
         </div>
       </div>
+
+      {/* Resume Section */}
+      <Card>
+        <Card.Header>
+          <h3 className="text-lg font-semibold text-gray-900">Resume</h3>
+        </Card.Header>
+        <Card.Body>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <FileText className="w-8 h-8 text-gray-400" />
+              <div>
+                {user?.resumeFileName ? (
+                  <>
+                    <p className="font-medium text-gray-900">
+                      {user.resumeFileName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Uploaded on{" "}
+                      {new Date(user.resumeUploadedAt).toLocaleDateString()}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-gray-600">No resume uploaded</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {user?.resumeUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  href={user.resumeUrl}
+                  target="_blank"
+                  className="flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </Button>
+              )}
+
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeUpload}
+                  disabled={uploadingResume}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Button
+                  size="sm"
+                  disabled={uploadingResume}
+                  className="flex items-center space-x-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>
+                    {uploadingResume ? "Uploading..." : "Upload Resume"}
+                  </span>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {uploadingResume && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span>Uploading resume...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
     </div>
   );
 };
 
-export default Profile;
+export default UserProfile;

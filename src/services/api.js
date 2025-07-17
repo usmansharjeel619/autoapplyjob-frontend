@@ -1,16 +1,19 @@
 import axios from "axios";
 import { API_BASE_URL, STORAGE_KEYS } from "../utils/constants";
-import { getStorageItem, removeStorageItem } from "../utils/helpers";
+import {
+  getStorageItem,
+  removeStorageItem,
+  setStorageItem,
+} from "../utils/helpers";
 
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
-
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -18,47 +21,83 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add request timestamp for debugging
+    config.metadata = { startTime: new Date() };
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response) => {
+    // Calculate request duration
+    response.config.metadata.endTime = new Date();
+    response.duration =
+      response.config.metadata.endTime - response.config.metadata.startTime;
+
     return response;
   },
-  (error) => {
-    // Handle common HTTP errors
+  async (error) => {
+    const originalRequest = error.config;
+
     if (error.response) {
       const { status, data } = error.response;
 
       switch (status) {
         case 401:
-          // Unauthorized - clear auth data and redirect to login
+          // Try to refresh token first
+          if (!originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+              const refreshToken = getStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+              if (refreshToken) {
+                const response = await api.post("/auth/refresh", {
+                  refreshToken,
+                });
+                const { token } = response.data;
+
+                setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+
+                return api(originalRequest);
+              }
+            } catch (refreshError) {
+              // Refresh failed, logout user
+              removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+              removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+              removeStorageItem(STORAGE_KEYS.USER_DATA);
+              window.location.href = "/auth";
+              return Promise.reject(refreshError);
+            }
+          }
+
+          // If refresh also failed or no refresh token
           removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+          removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
           removeStorageItem(STORAGE_KEYS.USER_DATA);
           window.location.href = "/auth";
           break;
 
         case 403:
-          // Forbidden - show access denied message
           console.error("Access denied");
           break;
 
-        case 404:
-          // Not found
-          console.error("Resource not found");
+        case 422:
+          // Validation errors - let components handle
           break;
 
-        case 422:
-          // Validation error - handled by individual components
+        case 429:
+          console.error("Rate limit exceeded");
           break;
 
         case 500:
-          // Server error
+        case 502:
+        case 503:
+        case 504:
           console.error("Server error occurred");
           break;
 
@@ -68,11 +107,7 @@ api.interceptors.response.use(
           );
       }
     } else if (error.request) {
-      // Network error
       console.error("Network error - please check your connection");
-    } else {
-      // Other error
-      console.error("An unexpected error occurred");
     }
 
     return Promise.reject(error);
@@ -80,40 +115,26 @@ api.interceptors.response.use(
 );
 
 // API helper functions
-export const apiGet = (url, config = {}) => {
-  return api.get(url, config);
-};
-
-export const apiPost = (url, data = {}, config = {}) => {
-  return api.post(url, data, config);
-};
-
-export const apiPut = (url, data = {}, config = {}) => {
-  return api.put(url, data, config);
-};
-
-export const apiPatch = (url, data = {}, config = {}) => {
-  return api.patch(url, data, config);
-};
-
-export const apiDelete = (url, config = {}) => {
-  return api.delete(url, config);
-};
+export const apiGet = (url, config = {}) => api.get(url, config);
+export const apiPost = (url, data = {}, config = {}) =>
+  api.post(url, data, config);
+export const apiPut = (url, data = {}, config = {}) =>
+  api.put(url, data, config);
+export const apiPatch = (url, data = {}, config = {}) =>
+  api.patch(url, data, config);
+export const apiDelete = (url, config = {}) => api.delete(url, config);
 
 // File upload helper
 export const apiPostFile = (url, file, data = {}, onUploadProgress = null) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  // Append additional data
   Object.keys(data).forEach((key) => {
     formData.append(key, data[key]);
   });
 
   return api.post(url, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+    headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress: onUploadProgress
       ? (progressEvent) => {
           const percentCompleted = Math.round(

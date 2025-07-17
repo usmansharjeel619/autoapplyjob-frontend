@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -6,15 +6,16 @@ import {
   Briefcase,
   Clock,
   DollarSign,
-  Bookmark,
-  BookmarkCheck,
   SlidersHorizontal,
   Grid,
   List,
   RefreshCw,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
+import { useAuth } from "../../context/AuthContext";
 import { JOB_TYPES, WORK_TYPES, INDUSTRIES } from "../../utils/constants";
+import jobService from "../../services/job.service";
+import userService from "../../services/user.service";
 import JobCard from "../../components/dashboard/JobCard";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -22,14 +23,21 @@ import Select from "../../components/ui/Select";
 import Card from "../../components/ui/Card";
 
 const Jobs = () => {
+  const { user } = useAuth();
   const { showSuccess, showError } = useApp();
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState("grid");
   const [sortBy, setSortBy] = useState("relevance");
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0,
+  });
   const [filters, setFilters] = useState({
     location: "",
     jobType: "",
@@ -42,178 +50,79 @@ const Jobs = () => {
   });
   const [savedJobs, setSavedJobs] = useState([]);
 
-  // Mock data - replace with actual API calls
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [pagination.page, sortBy]);
 
   useEffect(() => {
-    filterJobs();
+    filterAndSortJobs();
   }, [jobs, searchQuery, filters, sortBy]);
 
+  useEffect(() => {
+    fetchSavedJobs();
+  }, []);
+
   const fetchJobs = async () => {
-    setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setLoading(true);
+      const params = {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        sortBy,
+        userId: user?.id,
+      };
 
-      const mockJobs = [
-        {
-          id: 1,
-          title: "Senior Frontend Developer",
-          company: "TechCorp Inc.",
-          location: "San Francisco, CA",
-          workType: "Remote",
-          jobType: "Full-time",
-          salary: 120000,
-          description:
-            "We are looking for a senior frontend developer with expertise in React and TypeScript. You will be responsible for building user-facing applications and working closely with our design team.",
-          skills: ["React", "TypeScript", "Node.js", "AWS"],
-          postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          matchScore: 92,
-          status: "pending",
-          industry: "technology",
-        },
-        {
-          id: 2,
-          title: "Full Stack Engineer",
-          company: "StartupXYZ",
-          location: "New York, NY",
-          workType: "Hybrid",
-          jobType: "Full-time",
-          salary: 95000,
-          description:
-            "Join our fast-growing startup as a full stack engineer working on cutting-edge products. Experience with modern web technologies required.",
-          skills: ["JavaScript", "Python", "React", "Django"],
-          postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          matchScore: 88,
-          status: "approved",
-          industry: "technology",
-        },
-        {
-          id: 3,
-          title: "React Developer",
-          company: "Digital Solutions",
-          location: "Austin, TX",
-          workType: "On-site",
-          jobType: "Full-time",
-          salary: 85000,
-          description:
-            "Looking for a passionate React developer to join our development team. Great opportunity for growth and learning.",
-          skills: ["React", "JavaScript", "CSS", "Redux"],
-          postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          matchScore: 85,
-          status: "applied",
-          industry: "technology",
-        },
-        {
-          id: 4,
-          title: "Product Manager",
-          company: "Innovation Labs",
-          location: "Seattle, WA",
-          workType: "Remote",
-          jobType: "Full-time",
-          salary: 110000,
-          description:
-            "Lead product development for our flagship products. Experience in agile methodology and user research required.",
-          skills: ["Product Strategy", "Agile", "User Research", "Analytics"],
-          postedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-          matchScore: 78,
-          status: "pending",
-          industry: "technology",
-        },
-      ];
+      const response = await jobService.searchJobs(params);
 
-      setJobs(mockJobs);
+      setJobs(response.jobs || []);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.total || 0,
+        totalPages: response.totalPages || 0,
+      }));
     } catch (error) {
       showError("Failed to load jobs");
+      console.error("Jobs fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterJobs = () => {
+  const fetchSavedJobs = async () => {
+    try {
+      const response = await userService.getSavedJobs();
+      setSavedJobs(response.map((job) => job.id));
+    } catch (error) {
+      console.error("Failed to fetch saved jobs:", error);
+    }
+  };
+
+  const filterAndSortJobs = useCallback(() => {
     let filtered = [...jobs];
 
-    // Search query filter
+    // Apply search query
     if (searchQuery.trim()) {
       filtered = filtered.filter(
         (job) =>
           job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.skills.some((skill) =>
-            skill.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+          job.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Location filter
-    if (filters.location) {
-      filtered = filtered.filter((job) =>
-        job.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
+    // Apply filters
+    filtered = jobService.filterJobs(filtered, filters);
 
-    // Job type filter
-    if (filters.jobType) {
-      filtered = filtered.filter((job) => job.jobType === filters.jobType);
-    }
-
-    // Work type filter
-    if (filters.workType) {
-      filtered = filtered.filter((job) => job.workType === filters.workType);
-    }
-
-    // Industry filter
-    if (filters.industry) {
-      filtered = filtered.filter((job) => job.industry === filters.industry);
-    }
-
-    // Salary filter
-    if (filters.minSalary) {
-      filtered = filtered.filter(
-        (job) => job.salary >= parseInt(filters.minSalary)
-      );
-    }
-
-    if (filters.maxSalary) {
-      filtered = filtered.filter(
-        (job) => job.salary <= parseInt(filters.maxSalary)
-      );
-    }
-
-    // Match score filter
-    if (filters.minMatchScore) {
-      filtered = filtered.filter(
-        (job) => job.matchScore >= filters.minMatchScore
-      );
-    }
-
-    // Date posted filter
-    if (filters.datePosted) {
-      const days = parseInt(filters.datePosted);
-      const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter((job) => job.postedDate >= cutoffDate);
-    }
-
-    // Sort jobs
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "relevance":
-          return b.matchScore - a.matchScore;
-        case "date":
-          return b.postedDate - a.postedDate;
-        case "salary":
-          return b.salary - a.salary;
-        case "company":
-          return a.company.localeCompare(b.company);
-        default:
-          return 0;
-      }
-    });
+    // Apply sorting
+    filtered = jobService.sortJobs(filtered, sortBy);
 
     setFilteredJobs(filtered);
+  }, [jobs, searchQuery, filters, sortBy]);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    await fetchJobs();
   };
 
   const handleFilterChange = (key, value) => {
@@ -234,254 +143,302 @@ const Jobs = () => {
     setSearchQuery("");
   };
 
-  const handleSaveJob = (jobId) => {
-    setSavedJobs((prev) => [...prev, jobId]);
-    showSuccess("Job saved successfully!");
+  const handleJobAction = async (jobId, action) => {
+    try {
+      switch (action) {
+        case "save":
+          await userService.saveJob(jobId);
+          setSavedJobs((prev) => [...prev, jobId]);
+          showSuccess("Job saved successfully");
+          break;
+        case "unsave":
+          await userService.unsaveJob(jobId);
+          setSavedJobs((prev) => prev.filter((id) => id !== jobId));
+          showSuccess("Job removed from saved");
+          break;
+        case "apply":
+          await jobService.applyToJob(jobId);
+          showSuccess("Application submitted successfully");
+          // Update job status locally
+          setJobs((prev) =>
+            prev.map((job) =>
+              job.id === jobId ? { ...job, status: "applied" } : job
+            )
+          );
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      showError(`Failed to ${action} job`);
+      console.error(`Job ${action} error:`, error);
+    }
   };
 
-  const handleUnsaveJob = (jobId) => {
-    setSavedJobs((prev) => prev.filter((id) => id !== jobId));
-    showSuccess("Job removed from saved list");
+  const handlePageChange = (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const handleViewJobDetails = (job) => {
-    // TODO: Navigate to job details page or open modal
-    console.log("View job details:", job);
-  };
-
-  const sortOptions = [
-    { value: "relevance", label: "Best Match" },
-    { value: "date", label: "Most Recent" },
-    { value: "salary", label: "Highest Salary" },
-    { value: "company", label: "Company A-Z" },
-  ];
-
-  const datePostedOptions = [
-    { value: "", label: "Any time" },
-    { value: "1", label: "Last 24 hours" },
-    { value: "7", label: "Last week" },
-    { value: "30", label: "Last month" },
-  ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="spinner" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Job Search</h1>
-          <p className="text-gray-600 mt-1">
-            {filteredJobs.length} jobs found{" "}
-            {searchQuery && `for "${searchQuery}"`}
+          <h1 className="text-2xl font-bold text-gray-900">Job Search</h1>
+          <p className="text-gray-600">
+            {filteredJobs.length} jobs found
+            {searchQuery && ` for "${searchQuery}"`}
           </p>
         </div>
 
-        <Button
-          onClick={fetchJobs}
-          icon={<RefreshCw size={16} />}
-          variant="outline"
-        >
-          Refresh
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+            className="flex items-center space-x-2"
+          >
+            {viewMode === "grid" ? (
+              <List className="w-4 h-4" />
+            ) : (
+              <Grid className="w-4 h-4" />
+            )}
+            <span>{viewMode === "grid" ? "List" : "Grid"}</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchJobs}
+            disabled={loading}
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
       <Card>
         <Card.Body>
-          <div className="space-y-4">
-            {/* Search Bar */}
-            <div className="flex gap-4">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search jobs, companies, skills..."
+                  type="text"
+                  placeholder="Search for jobs, companies, or keywords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  icon={<Search size={16} />}
+                  icon={<Search className="w-5 h-5" />}
                 />
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                icon={<SlidersHorizontal size={16} />}
-              >
-                Filters
-              </Button>
+
+              <div className="flex items-center space-x-3">
+                <Button type="submit" disabled={loading}>
+                  Search
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center space-x-2"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>Filters</span>
+                </Button>
+              </div>
             </div>
 
-            {/* Filters */}
+            {/* Advanced Filters */}
             {showFilters && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
                 <Input
-                  label="Location"
-                  placeholder="City, State"
+                  placeholder="Location"
                   value={filters.location}
                   onChange={(e) =>
                     handleFilterChange("location", e.target.value)
                   }
-                  icon={<MapPin size={16} />}
+                  icon={<MapPin className="w-4 h-4" />}
                 />
 
                 <Select
-                  label="Job Type"
-                  options={[{ value: "", label: "All Types" }, ...JOB_TYPES]}
                   value={filters.jobType}
-                  onChange={(value) => handleFilterChange("jobType", value)}
+                  onChange={(e) =>
+                    handleFilterChange("jobType", e.target.value)
+                  }
+                  options={[{ value: "", label: "Any Job Type" }, ...JOB_TYPES]}
                 />
 
                 <Select
-                  label="Work Type"
+                  value={filters.workType}
+                  onChange={(e) =>
+                    handleFilterChange("workType", e.target.value)
+                  }
                   options={[
-                    { value: "", label: "All Arrangements" },
+                    { value: "", label: "Any Work Type" },
                     ...WORK_TYPES,
                   ]}
-                  value={filters.workType}
-                  onChange={(value) => handleFilterChange("workType", value)}
                 />
 
                 <Select
-                  label="Industry"
+                  value={filters.industry}
+                  onChange={(e) =>
+                    handleFilterChange("industry", e.target.value)
+                  }
                   options={[
-                    { value: "", label: "All Industries" },
+                    { value: "", label: "Any Industry" },
                     ...INDUSTRIES,
                   ]}
-                  value={filters.industry}
-                  onChange={(value) => handleFilterChange("industry", value)}
                 />
 
                 <Input
-                  label="Min Salary"
                   type="number"
-                  placeholder="e.g., 80000"
+                  placeholder="Min Salary"
                   value={filters.minSalary}
                   onChange={(e) =>
                     handleFilterChange("minSalary", e.target.value)
                   }
-                  icon={<DollarSign size={16} />}
+                  icon={<DollarSign className="w-4 h-4" />}
                 />
 
                 <Input
-                  label="Max Salary"
                   type="number"
-                  placeholder="e.g., 120000"
+                  placeholder="Max Salary"
                   value={filters.maxSalary}
                   onChange={(e) =>
                     handleFilterChange("maxSalary", e.target.value)
                   }
-                  icon={<DollarSign size={16} />}
+                  icon={<DollarSign className="w-4 h-4" />}
                 />
 
                 <Select
-                  label="Date Posted"
-                  options={datePostedOptions}
                   value={filters.datePosted}
-                  onChange={(value) => handleFilterChange("datePosted", value)}
+                  onChange={(e) =>
+                    handleFilterChange("datePosted", e.target.value)
+                  }
+                  options={[
+                    { value: "", label: "Any Time" },
+                    { value: "1", label: "Last 24 hours" },
+                    { value: "7", label: "Last 7 days" },
+                    { value: "14", label: "Last 14 days" },
+                    { value: "30", label: "Last 30 days" },
+                  ]}
                 />
 
-                <div>
-                  <label className="form-label">
-                    Min Match Score: {filters.minMatchScore}%
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={filters.minMatchScore}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "minMatchScore",
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-
-                <div className="col-span-full flex justify-end gap-2">
-                  <Button variant="outline" onClick={clearFilters}>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={clearFilters}
+                  >
                     Clear All
                   </Button>
                 </div>
               </div>
             )}
-          </div>
+          </form>
         </Card.Body>
       </Card>
 
-      {/* Controls */}
+      {/* Sort Options */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">Sort by:</span>
           <Select
-            options={sortOptions}
             value={sortBy}
-            onChange={setSortBy}
-            className="w-40"
+            onChange={(e) => setSortBy(e.target.value)}
+            options={[
+              { value: "relevance", label: "Relevance" },
+              { value: "date", label: "Date Posted" },
+              { value: "salary", label: "Salary" },
+              { value: "company", label: "Company" },
+            ]}
+            className="w-auto"
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === "grid" ? "primary" : "ghost"}
-            size="sm"
-            icon={<Grid size={16} />}
-            onClick={() => setViewMode("grid")}
-          />
-          <Button
-            variant={viewMode === "list" ? "primary" : "ghost"}
-            size="sm"
-            icon={<List size={16} />}
-            onClick={() => setViewMode("list")}
-          />
+        <div className="text-sm text-gray-600">
+          Showing {(pagination.page - 1) * pagination.pageSize + 1}-
+          {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{" "}
+          {pagination.total} jobs
         </div>
       </div>
 
-      {/* Job Results */}
-      {filteredJobs.length === 0 ? (
-        <Card>
-          <Card.Body className="text-center py-12">
-            <Briefcase className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No jobs found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Try adjusting your search criteria or filters to find more
-              opportunities.
-            </p>
-            <Button onClick={clearFilters}>Clear Filters</Button>
-          </Card.Body>
-        </Card>
-      ) : (
+      {/* Jobs Grid/List */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div key={index} className="animate-pulse">
+              <div className="bg-gray-200 rounded-lg h-64"></div>
+            </div>
+          ))}
+        </div>
+      ) : filteredJobs.length > 0 ? (
         <div
-          className={`grid gap-6 ${
-            viewMode === "grid" ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
-          }`}
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }
         >
           {filteredJobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
-              onSave={handleSaveJob}
-              onUnsave={handleUnsaveJob}
-              onViewDetails={handleViewJobDetails}
-              isSaved={savedJobs.includes(job.id)}
-              showSaveButton={true}
-              showApplyButton={false}
+              saved={savedJobs.includes(job.id)}
+              onSave={() => handleJobAction(job.id, "save")}
+              onUnsave={() => handleJobAction(job.id, "unsave")}
+              onApply={() => handleJobAction(job.id, "apply")}
+              viewMode={viewMode}
             />
           ))}
         </div>
+      ) : (
+        <div className="text-center py-12">
+          <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No jobs found
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search criteria or filters
+          </p>
+          <Button onClick={clearFilters}>Clear Filters</Button>
+        </div>
       )}
 
-      {/* Load More */}
-      {filteredJobs.length > 0 && (
-        <div className="text-center pt-6">
-          <Button variant="outline" size="lg">
-            Load More Jobs
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2">
+          <Button
+            variant="outline"
+            disabled={pagination.page === 1}
+            onClick={() => handlePageChange(pagination.page - 1)}
+          >
+            Previous
+          </Button>
+
+          {[...Array(Math.min(5, pagination.totalPages))].map((_, index) => {
+            const pageNumber = index + 1;
+            return (
+              <Button
+                key={pageNumber}
+                variant={pagination.page === pageNumber ? "primary" : "outline"}
+                onClick={() => handlePageChange(pageNumber)}
+              >
+                {pageNumber}
+              </Button>
+            );
+          })}
+
+          <Button
+            variant="outline"
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() => handlePageChange(pagination.page + 1)}
+          >
+            Next
           </Button>
         </div>
       )}

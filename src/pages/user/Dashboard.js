@@ -1,242 +1,297 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
-  FileText,
-  Settings,
-  User,
+  Users,
+  Briefcase,
   TrendingUp,
-  Calendar,
   Clock,
+  Target,
   CheckCircle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useApp } from "../../context/AppContext";
-import { StatsCard, ActivityTimeline } from "../../components/dashboard";
+import userService from "../../services/user.service";
+import jobService from "../../services/job.service";
+import StatsCard from "../../components/dashboard/StatsCard";
+import JobCard from "../../components/dashboard/JobCard";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 
-const Dashboard = () => {
+const UserDashboard = () => {
   const { user } = useAuth();
-  const { showSuccess } = useApp();
-  const [stats, setStats] = useState({
-    profileViews: 0,
-    appliedJobs: 0,
-    interviews: 0,
-    cvUpdates: 0,
-  });
-  const [recentActivity, setRecentActivity] = useState([]);
+  const { showSuccess, showError } = useApp();
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      totalApplications: 0,
+      pendingApplications: 0,
+      scheduledInterviews: 0,
+      jobMatches: 0,
+      profileCompleteness: 0,
+      responseRate: 0,
+    },
+    recentApplications: [],
+    recommendedJobs: [],
+    upcomingInterviews: [],
+    activityLog: [],
+  });
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
     try {
-      // Mock data - replace with actual API calls
-      const mockStats = {
-        profileViews: 127,
-        appliedJobs: 45,
-        interviews: 8,
-        cvUpdates: 12,
-      };
-
-      const mockActivity = [
-        {
-          id: 1,
-          type: "application",
-          title: "Applied to Senior Developer at TechCorp",
-          time: "2 hours ago",
-          status: "success",
-        },
-        {
-          id: 2,
-          type: "profile_update",
-          title: "CV updated with AI optimization",
-          time: "1 day ago",
-          status: "success",
-        },
-        {
-          id: 3,
-          type: "interview",
-          title: "Interview scheduled with DataSoft",
-          time: "2 days ago",
-          status: "pending",
-        },
-        {
-          id: 4,
-          type: "application",
-          title: "Applied to Frontend Role at StartupX",
-          time: "3 days ago",
-          status: "success",
-        },
-      ];
-
-      setStats(mockStats);
-      setRecentActivity(mockActivity);
+      setLoading(true);
+      const data = await userService.getDashboardStats();
+      setDashboardData(data);
     } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
+      showError("Failed to load dashboard data");
+      console.error("Dashboard error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleJobAction = async (jobId, action) => {
+    try {
+      switch (action) {
+        case "save":
+          await userService.saveJob(jobId);
+          showSuccess("Job saved successfully");
+          break;
+        case "unsave":
+          await userService.unsaveJob(jobId);
+          showSuccess("Job removed from saved");
+          break;
+        case "apply":
+          await jobService.applyToJob(jobId);
+          showSuccess("Application submitted successfully");
+          fetchDashboardData(); // Refresh data
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      showError(`Failed to ${action} job`);
+      console.error(`Job ${action} error:`, error);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="spinner" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
+  const { stats, recentApplications, recommendedJobs, upcomingInterviews } =
+    dashboardData;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-black to-gray-800 rounded-xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">
-          Welcome back, {user?.name || "Job Seeker"}!
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">
+          Welcome back, {user?.name?.split(" ")[0] || "User"}! 👋
         </h1>
-        <p className="text-gray-300 mb-6">
-          Our team is actively working on finding and applying to jobs for you.
+        <p className="text-blue-100">
+          {stats.pendingApplications > 0
+            ? `You have ${stats.pendingApplications} pending applications`
+            : "Keep up the great work on your job search!"}
         </p>
-        <div className="flex gap-4">
-          <Link to="/profile">
-            <Button
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-black"
-            >
-              Update Profile
-            </Button>
-          </Link>
-          <Link to="/tools">
-            <Button className="bg-white text-black hover:bg-gray-100">
-              AI CV Update
-            </Button>
-          </Link>
-        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatsCard
-          title="Profile Views"
-          value={stats.profileViews}
-          icon={User}
-          change={12}
-          trend="up"
+          title="Total Applications"
+          value={stats.totalApplications}
+          icon={<Briefcase className="w-5 h-5" />}
+          color="blue"
+          trend={{
+            value: stats.applicationsTrend,
+            isPositive: stats.applicationsTrend > 0,
+          }}
         />
         <StatsCard
-          title="Jobs Applied"
-          value={stats.appliedJobs}
-          icon={FileText}
-          change={8}
-          trend="up"
+          title="Pending"
+          value={stats.pendingApplications}
+          icon={<Clock className="w-5 h-5" />}
+          color="yellow"
         />
         <StatsCard
           title="Interviews"
-          value={stats.interviews}
-          icon={Calendar}
-          change={2}
-          trend="up"
+          value={stats.scheduledInterviews}
+          icon={<Users className="w-5 h-5" />}
+          color="green"
         />
         <StatsCard
-          title="CV Updates"
-          value={stats.cvUpdates}
-          icon={TrendingUp}
-          change={4}
-          trend="up"
+          title="Job Matches"
+          value={stats.jobMatches}
+          icon={<Target className="w-5 h-5" />}
+          color="purple"
+        />
+        <StatsCard
+          title="Profile Complete"
+          value={`${stats.profileCompleteness}%`}
+          icon={<CheckCircle className="w-5 h-5" />}
+          color="emerald"
+        />
+        <StatsCard
+          title="Response Rate"
+          value={`${stats.responseRate}%`}
+          icon={<TrendingUp className="w-5 h-5" />}
+          color="indigo"
         />
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Activity */}
-        <div className="lg:col-span-2">
-          <Card>
-            <Card.Header>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Recent Activity
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Latest updates on your job applications
-              </p>
-            </Card.Header>
-            <Card.Body>
-              <ActivityTimeline activities={recentActivity} />
-            </Card.Body>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          <Card>
-            <Card.Header>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Applications */}
+        <Card>
+          <Card.Header>
+            <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">
-                Quick Actions
+                Recent Applications
               </h3>
-            </Card.Header>
-            <Card.Body>
-              <div className="space-y-3">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <User className="text-black" size={20} />
-                  <span className="font-medium text-gray-900">
-                    Edit Profile
-                  </span>
-                </Link>
-                <Link
-                  to="/tools"
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <FileText className="text-black" size={20} />
-                  <span className="font-medium text-gray-900">Update CV</span>
-                </Link>
-                <Link
-                  to="/settings"
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <Settings className="text-black" size={20} />
-                  <span className="font-medium text-gray-900">Settings</span>
-                </Link>
-              </div>
-            </Card.Body>
-          </Card>
-
-          {/* Application Status */}
-          <Card>
-            <Card.Header>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Application Status
-              </h3>
-            </Card.Header>
-            <Card.Body>
+              <Button variant="outline" size="sm" href="/applications">
+                View All
+              </Button>
+            </div>
+          </Card.Header>
+          <Card.Body>
+            {recentApplications.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Pending Review</span>
-                  <span className="text-yellow-600 font-medium">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Applied</span>
-                  <span className="text-blue-600 font-medium">33</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Interview Scheduled</span>
-                  <span className="text-green-600 font-medium">8</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Offers Received</span>
-                  <span className="text-purple-600 font-medium">2</span>
-                </div>
+                {recentApplications.slice(0, 5).map((application) => (
+                  <div
+                    key={application.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">
+                        {application.jobTitle}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {application.company}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Applied{" "}
+                        {new Date(application.appliedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          application.status === "interview"
+                            ? "bg-green-100 text-green-800"
+                            : application.status === "applied"
+                            ? "bg-blue-100 text-blue-800"
+                            : application.status === "rejected"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {application.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </Card.Body>
-          </Card>
-        </div>
+            ) : (
+              <div className="text-center py-8">
+                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No applications yet</p>
+                <Button className="mt-4" href="/jobs">
+                  Browse Jobs
+                </Button>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+
+        {/* Recommended Jobs */}
+        <Card>
+          <Card.Header>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Recommended Jobs
+              </h3>
+              <Button variant="outline" size="sm" href="/jobs">
+                View All
+              </Button>
+            </div>
+          </Card.Header>
+          <Card.Body>
+            {recommendedJobs.length > 0 ? (
+              <div className="space-y-4">
+                {recommendedJobs.slice(0, 3).map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onSave={() => handleJobAction(job.id, "save")}
+                    onUnsave={() => handleJobAction(job.id, "unsave")}
+                    onApply={() => handleJobAction(job.id, "apply")}
+                    compact
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No job recommendations yet</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Complete your profile to get better matches
+                </p>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
       </div>
+
+      {/* Upcoming Interviews */}
+      {upcomingInterviews.length > 0 && (
+        <Card>
+          <Card.Header>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Upcoming Interviews
+            </h3>
+          </Card.Header>
+          <Card.Body>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingInterviews.map((interview) => (
+                <div
+                  key={interview.id}
+                  className="p-4 border border-gray-200 rounded-lg"
+                >
+                  <h4 className="font-medium text-gray-900">
+                    {interview.jobTitle}
+                  </h4>
+                  <p className="text-sm text-gray-600">{interview.company}</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {new Date(interview.scheduledAt).toLocaleDateString()} at{" "}
+                    {new Date(interview.scheduledAt).toLocaleTimeString()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Type: {interview.type}
+                  </p>
+                  {interview.meetingLink && (
+                    <Button
+                      size="sm"
+                      className="mt-3"
+                      href={interview.meetingLink}
+                      target="_blank"
+                    >
+                      Join Meeting
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card.Body>
+        </Card>
+      )}
     </div>
   );
 };
 
-export default Dashboard;
+export default UserDashboard;

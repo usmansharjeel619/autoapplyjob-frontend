@@ -1,249 +1,102 @@
-import { apiGet, apiPost, apiPut, apiDelete } from "./api";
+import { apiGet, apiPost } from "./api";
+import { API_ENDPOINTS } from "../utils/constants";
 
 class JobService {
-  // Job Search & Discovery
   async searchJobs(params = {}) {
-    const response = await apiGet("/jobs/search", { params });
+    const response = await apiGet(API_ENDPOINTS.JOBS.SEARCH, { params });
     return response.data;
   }
 
-  async getJob(jobId) {
-    const response = await apiGet(`/jobs/${jobId}`);
+  async getJobDetails(jobId) {
+    const url = API_ENDPOINTS.JOBS.DETAILS.replace(":id", jobId);
+    const response = await apiGet(url);
     return response.data;
   }
 
-  async getFeaturedJobs(params = {}) {
-    const response = await apiGet("/jobs/featured", { params });
+  async applyToJob(jobId, applicationData = {}) {
+    const url = API_ENDPOINTS.JOBS.APPLY.replace(":id", jobId);
+    const response = await apiPost(url, applicationData);
     return response.data;
   }
 
-  async getRecentJobs(params = {}) {
-    const response = await apiGet("/jobs/recent", { params });
-    return response.data;
-  }
-
-  async getJobsByCompany(companyId, params = {}) {
-    const response = await apiGet(`/jobs/company/${companyId}`, { params });
-    return response.data;
-  }
-
-  async getJobsByLocation(location, params = {}) {
-    const response = await apiGet(
-      `/jobs/location/${encodeURIComponent(location)}`,
-      { params }
-    );
-    return response.data;
-  }
-
-  async getJobsByCategory(category, params = {}) {
-    const response = await apiGet(`/jobs/category/${category}`, { params });
-    return response.data;
-  }
-
-  // Job Recommendations
-  async getRecommendedJobs(userId, params = {}) {
-    const response = await apiGet(`/jobs/recommendations/${userId}`, {
+  async getScrapedJobs(userId, params = {}) {
+    const response = await apiGet(`${API_ENDPOINTS.JOBS.SCRAPED}/${userId}`, {
       params,
     });
     return response.data;
   }
 
-  async getSimilarJobs(jobId, params = {}) {
-    const response = await apiGet(`/jobs/${jobId}/similar`, { params });
-    return response.data;
-  }
+  // Job filtering and sorting utilities
+  filterJobs(jobs, filters) {
+    return jobs.filter((job) => {
+      // Location filter
+      if (
+        filters.location &&
+        !job.location.toLowerCase().includes(filters.location.toLowerCase())
+      ) {
+        return false;
+      }
 
-  // Job Filters & Categories
-  async getJobCategories() {
-    const response = await apiGet("/jobs/categories");
-    return response.data;
-  }
+      // Job type filter
+      if (filters.jobType && job.jobType !== filters.jobType) {
+        return false;
+      }
 
-  async getJobTypes() {
-    const response = await apiGet("/jobs/types");
-    return response.data;
-  }
+      // Work type filter
+      if (filters.workType && job.workType !== filters.workType) {
+        return false;
+      }
 
-  async getExperienceLevels() {
-    const response = await apiGet("/jobs/experience-levels");
-    return response.data;
-  }
+      // Industry filter
+      if (filters.industry && job.industry !== filters.industry) {
+        return false;
+      }
 
-  async getJobLocations() {
-    const response = await apiGet("/jobs/locations");
-    return response.data;
-  }
+      // Salary range filter
+      if (filters.minSalary && job.salary < parseInt(filters.minSalary)) {
+        return false;
+      }
 
-  async getCompanies(params = {}) {
-    const response = await apiGet("/jobs/companies", { params });
-    return response.data;
-  }
+      if (filters.maxSalary && job.salary > parseInt(filters.maxSalary)) {
+        return false;
+      }
 
-  async getCompanyDetails(companyId) {
-    const response = await apiGet(`/jobs/companies/${companyId}`);
-    return response.data;
-  }
+      // Match score filter
+      if (filters.minMatchScore && job.matchScore < filters.minMatchScore) {
+        return false;
+      }
 
-  // Job Scraping & Sources
-  async getJobSources() {
-    const response = await apiGet("/jobs/sources");
-    return response.data;
-  }
+      // Date posted filter
+      if (filters.datePosted) {
+        const daysAgo = parseInt(filters.datePosted);
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
 
-  async getJobsBySource(source, params = {}) {
-    const response = await apiGet(`/jobs/source/${source}`, { params });
-    return response.data;
-  }
+        if (new Date(job.postedDate) < cutoffDate) {
+          return false;
+        }
+      }
 
-  // Job Statistics
-  async getJobStats(params = {}) {
-    const response = await apiGet("/jobs/stats", { params });
-    return response.data;
-  }
-
-  async getJobTrends(params = {}) {
-    const response = await apiGet("/jobs/trends", { params });
-    return response.data;
-  }
-
-  async getSalaryInsights(params = {}) {
-    const response = await apiGet("/jobs/salary-insights", { params });
-    return response.data;
-  }
-
-  // Job Alerts & Notifications
-  async createJobAlert(alertData) {
-    const response = await apiPost("/jobs/alerts", alertData);
-    return response.data;
-  }
-
-  async getJobAlerts(userId) {
-    const response = await apiGet(`/jobs/alerts/user/${userId}`);
-    return response.data;
-  }
-
-  async updateJobAlert(alertId, alertData) {
-    const response = await apiPut(`/jobs/alerts/${alertId}`, alertData);
-    return response.data;
-  }
-
-  async deleteJobAlert(alertId) {
-    const response = await apiDelete(`/jobs/alerts/${alertId}`);
-    return response.data;
-  }
-
-  async getAlertMatches(alertId, params = {}) {
-    const response = await apiGet(`/jobs/alerts/${alertId}/matches`, {
-      params,
+      return true;
     });
-    return response.data;
   }
 
-  // Job Import & Export
-  async importJobs(source, params = {}) {
-    const response = await apiPost("/jobs/import", { source, ...params });
-    return response.data;
-  }
-
-  async exportJobs(params = {}) {
-    const response = await apiGet("/jobs/export", {
-      params,
-      responseType: "blob",
+  sortJobs(jobs, sortBy) {
+    return [...jobs].sort((a, b) => {
+      switch (sortBy) {
+        case "relevance":
+          return b.matchScore - a.matchScore;
+        case "date":
+          return new Date(b.postedDate) - new Date(a.postedDate);
+        case "salary":
+          return b.salary - a.salary;
+        case "company":
+          return a.company.localeCompare(b.company);
+        default:
+          return 0;
+      }
     });
-    return response.data;
-  }
-
-  // Job Validation & Quality
-  async validateJob(jobData) {
-    const response = await apiPost("/jobs/validate", jobData);
-    return response.data;
-  }
-
-  async reportJob(jobId, reason) {
-    const response = await apiPost(`/jobs/${jobId}/report`, { reason });
-    return response.data;
-  }
-
-  async getJobQualityScore(jobId) {
-    const response = await apiGet(`/jobs/${jobId}/quality-score`);
-    return response.data;
-  }
-
-  // Job Matching Algorithm
-  async calculateJobMatch(userId, jobId) {
-    const response = await apiPost("/jobs/calculate-match", { userId, jobId });
-    return response.data;
-  }
-
-  async getMatchingCriteria() {
-    const response = await apiGet("/jobs/matching-criteria");
-    return response.data;
-  }
-
-  async updateMatchingWeights(weights) {
-    const response = await apiPut("/jobs/matching-weights", weights);
-    return response.data;
-  }
-
-  // Advanced Search
-  async advancedSearch(searchParams) {
-    const response = await apiPost("/jobs/advanced-search", searchParams);
-    return response.data;
-  }
-
-  async saveSearch(searchParams, name) {
-    const response = await apiPost("/jobs/saved-searches", {
-      searchParams,
-      name,
-    });
-    return response.data;
-  }
-
-  async getSavedSearches(userId) {
-    const response = await apiGet(`/jobs/saved-searches/user/${userId}`);
-    return response.data;
-  }
-
-  async deleteSavedSearch(searchId) {
-    const response = await apiDelete(`/jobs/saved-searches/${searchId}`);
-    return response.data;
-  }
-
-  // Job Insights & Analytics
-  async getJobInsights(jobId) {
-    const response = await apiGet(`/jobs/${jobId}/insights`);
-    return response.data;
-  }
-
-  async getMarketAnalysis(params = {}) {
-    const response = await apiGet("/jobs/market-analysis", { params });
-    return response.data;
-  }
-
-  async getSkillDemand(params = {}) {
-    const response = await apiGet("/jobs/skill-demand", { params });
-    return response.data;
-  }
-
-  async getLocationInsights(location) {
-    const response = await apiGet(
-      `/jobs/location-insights/${encodeURIComponent(location)}`
-    );
-    return response.data;
-  }
-
-  // Job Application Management (for Admin)
-  async getJobApplications(jobId, params = {}) {
-    const response = await apiGet(`/jobs/${jobId}/applications`, { params });
-    return response.data;
-  }
-
-  async getApplicationStats(jobId) {
-    const response = await apiGet(`/jobs/${jobId}/application-stats`);
-    return response.data;
   }
 }
 
-// Create and export a singleton instance
-const jobService = new JobService();
-export default jobService;
+export default new JobService();

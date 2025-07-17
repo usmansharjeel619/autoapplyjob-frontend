@@ -2,11 +2,49 @@
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
-// Application Routes
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    LOGOUT: "/auth/logout",
+    REFRESH: "/auth/refresh",
+    VERIFY_EMAIL: "/auth/verify-email",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    RESET_PASSWORD: "/auth/reset-password",
+    CHANGE_PASSWORD: "/auth/change-password",
+  },
+  USER: {
+    PROFILE: "/user/profile",
+    UPDATE_PROFILE: "/user/profile",
+    UPLOAD_RESUME: "/user/resume",
+    GET_JOBS: "/user/jobs",
+    SAVED_JOBS: "/user/saved-jobs",
+    APPLICATION_HISTORY: "/user/applications",
+    SETTINGS: "/user/settings",
+    DASHBOARD_STATS: "/user/dashboard",
+  },
+  ADMIN: {
+    DASHBOARD: "/admin/dashboard",
+    USERS: "/admin/users",
+    APPLICATIONS: "/admin/applications",
+    JOBS: "/admin/jobs",
+    ANALYTICS: "/admin/analytics",
+    SYSTEM_SETTINGS: "/admin/settings",
+  },
+  JOBS: {
+    SEARCH: "/jobs/search",
+    DETAILS: "/jobs/:id",
+    APPLY: "/jobs/:id/apply",
+    SCRAPED_JOBS: "/jobs/scraped",
+  },
+};
+
+// Application Routes (same as before)
 export const ROUTES = {
   HOME: "/",
   AUTH: "/auth",
   ONBOARDING: "/onboarding",
+  PAYMENT: "/payment",
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   JOBS: "/jobs",

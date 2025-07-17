@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useApp } from "../context/AppContext";
 
-// Custom hook for API calls with loading, error handling, and caching
-export const useApi = (apiFunction, dependencies = [], options = {}) => {
+export const useApi = (apiCall, dependencies = [], options = {}) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -11,136 +10,53 @@ export const useApi = (apiFunction, dependencies = [], options = {}) => {
   const {
     immediate = true,
     showErrorNotification = true,
-    cacheKey = null,
-    cacheDuration = 5 * 60 * 1000, // 5 minutes
+    onSuccess,
+    onError,
   } = options;
-
-  // Simple cache implementation
-  const cache = useCallback(() => {
-    if (!cacheKey) return { get: () => null, set: () => {}, clear: () => {} };
-
-    const storage = sessionStorage;
-
-    return {
-      get: () => {
-        try {
-          const cached = storage.getItem(cacheKey);
-          if (cached) {
-            const { data, timestamp } = JSON.parse(cached);
-            if (Date.now() - timestamp < cacheDuration) {
-              return data;
-            }
-          }
-        } catch (e) {
-          console.warn("Cache get error:", e);
-        }
-        return null;
-      },
-      set: (data) => {
-        try {
-          storage.setItem(
-            cacheKey,
-            JSON.stringify({
-              data,
-              timestamp: Date.now(),
-            })
-          );
-        } catch (e) {
-          console.warn("Cache set error:", e);
-        }
-      },
-      clear: () => {
-        try {
-          storage.removeItem(cacheKey);
-        } catch (e) {
-          console.warn("Cache clear error:", e);
-        }
-      },
-    };
-  }, [cacheKey, cacheDuration]);
 
   const execute = useCallback(
     async (...args) => {
-      setLoading(true);
-      setError(null);
-
       try {
-        // Check cache first
-        const cacheManager = cache();
-        const cachedData = cacheManager.get();
+        setLoading(true);
+        setError(null);
 
-        if (cachedData) {
-          setData(cachedData);
-          setLoading(false);
-          return { data: cachedData, error: null };
-        }
-
-        const result = await apiFunction(...args);
-
+        const result = await apiCall(...args);
         setData(result);
 
-        // Cache the result
-        if (cacheKey) {
-          cacheManager.set(result);
+        if (onSuccess) {
+          onSuccess(result);
         }
 
-        setLoading(false);
-        return { data: result, error: null };
+        return result;
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || err.message || "An error occurred";
-        setError(errorMessage);
-        setLoading(false);
+        setError(err);
 
         if (showErrorNotification) {
-          showError(errorMessage);
+          showError(err.response?.data?.message || "An error occurred");
         }
 
-        return { data: null, error: errorMessage };
+        if (onError) {
+          onError(err);
+        }
+
+        throw err;
+      } finally {
+        setLoading(false);
       }
     },
-    [apiFunction, cacheKey, cache, showError, showErrorNotification]
+    [apiCall, onSuccess, onError, showError, showErrorNotification]
   );
 
-  // Execute immediately if requested
   useEffect(() => {
     if (immediate) {
       execute();
     }
   }, dependencies);
 
-  // Clear cache when dependencies change
-  useEffect(() => {
-    if (cacheKey) {
-      const cacheManager = cache();
-      cacheManager.clear();
-    }
-  }, dependencies);
-
-  const refetch = useCallback(() => {
-    // Clear cache and refetch
-    if (cacheKey) {
-      const cacheManager = cache();
-      cacheManager.clear();
-    }
-    return execute();
-  }, [execute, cacheKey, cache]);
-
-  return {
-    data,
-    loading,
-    error,
-    execute,
-    refetch,
-  };
+  return { data, loading, error, execute };
 };
 
-// Hook for paginated API calls
-export const usePaginatedApi = (
-  apiFunction,
-  initialParams = {},
-  options = {}
-) => {
+export const usePaginatedApi = (apiCall, initialParams = {}) => {
   const [data, setData] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -150,92 +66,49 @@ export const usePaginatedApi = (
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { showError } = useApp();
-
-  const { showErrorNotification = true } = options;
 
   const fetchData = useCallback(
     async (params = {}) => {
-      setLoading(true);
-      setError(null);
-
       try {
-        const result = await apiFunction({
+        setLoading(true);
+        setError(null);
+
+        const result = await apiCall({
           ...initialParams,
           ...params,
-          page: params.page || pagination.page,
-          pageSize: params.pageSize || pagination.pageSize,
+          page: pagination.page,
+          pageSize: pagination.pageSize,
         });
 
         setData(result.data || []);
-        setPagination({
-          page: result.page || 1,
-          pageSize: result.pageSize || 10,
+        setPagination((prev) => ({
+          ...prev,
           total: result.total || 0,
           totalPages: result.totalPages || 0,
-        });
+        }));
 
-        setLoading(false);
-        return { data: result, error: null };
+        return result;
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || err.message || "An error occurred";
-        setError(errorMessage);
+        setError(err);
+        throw err;
+      } finally {
         setLoading(false);
-
-        if (showErrorNotification) {
-          showError(errorMessage);
-        }
-
-        return { data: null, error: errorMessage };
       }
     },
-    [
-      apiFunction,
-      initialParams,
-      pagination.page,
-      pagination.pageSize,
-      showError,
-      showErrorNotification,
-    ]
+    [apiCall, initialParams, pagination.page, pagination.pageSize]
   );
 
-  const nextPage = useCallback(() => {
-    if (pagination.page < pagination.totalPages) {
-      fetchData({ page: pagination.page + 1 });
-    }
-  }, [fetchData, pagination.page, pagination.totalPages]);
+  const goToPage = useCallback((page) => {
+    setPagination((prev) => ({ ...prev, page }));
+  }, []);
 
-  const prevPage = useCallback(() => {
-    if (pagination.page > 1) {
-      fetchData({ page: pagination.page - 1 });
-    }
-  }, [fetchData, pagination.page]);
+  const changePageSize = useCallback((pageSize) => {
+    setPagination((prev) => ({ ...prev, pageSize, page: 1 }));
+  }, []);
 
-  const goToPage = useCallback(
-    (page) => {
-      if (page >= 1 && page <= pagination.totalPages) {
-        fetchData({ page });
-      }
-    },
-    [fetchData, pagination.totalPages]
-  );
-
-  const changePageSize = useCallback(
-    (pageSize) => {
-      fetchData({ page: 1, pageSize });
-    },
-    [fetchData]
-  );
-
-  const refetch = useCallback(() => {
-    return fetchData();
-  }, [fetchData]);
-
-  // Initial fetch
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [pagination.page, pagination.pageSize]);
 
   return {
     data,
@@ -243,98 +116,8 @@ export const usePaginatedApi = (
     loading,
     error,
     fetchData,
-    nextPage,
-    prevPage,
     goToPage,
     changePageSize,
-    refetch,
-  };
-};
-
-// Hook for infinite scroll API calls
-export const useInfiniteApi = (
-  apiFunction,
-  initialParams = {},
-  options = {}
-) => {
-  const [data, setData] = useState([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const { showError } = useApp();
-
-  const { showErrorNotification = true, pageSize = 10 } = options;
-
-  const fetchMore = useCallback(
-    async (reset = false) => {
-      if (loading) return;
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const currentPage = reset ? 1 : page;
-        const result = await apiFunction({
-          ...initialParams,
-          page: currentPage,
-          pageSize,
-        });
-
-        const newData = result.data || [];
-
-        if (reset) {
-          setData(newData);
-          setPage(2);
-        } else {
-          setData((prev) => [...prev, ...newData]);
-          setPage((prev) => prev + 1);
-        }
-
-        setHasMore(newData.length === pageSize);
-        setLoading(false);
-
-        return { data: result, error: null };
-      } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || err.message || "An error occurred";
-        setError(errorMessage);
-        setLoading(false);
-
-        if (showErrorNotification) {
-          showError(errorMessage);
-        }
-
-        return { data: null, error: errorMessage };
-      }
-    },
-    [
-      apiFunction,
-      initialParams,
-      loading,
-      page,
-      pageSize,
-      showError,
-      showErrorNotification,
-    ]
-  );
-
-  const refresh = useCallback(() => {
-    return fetchMore(true);
-  }, [fetchMore]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchMore(true);
-  }, []);
-
-  return {
-    data,
-    hasMore,
-    loading,
-    error,
-    fetchMore: () => fetchMore(false),
-    refresh,
   };
 };
 
