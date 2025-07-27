@@ -1,3 +1,4 @@
+// src/pages/AuthPage.js
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -7,7 +8,7 @@ import SignupForm from "../components/auth/SignupForm";
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState("login");
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   useEffect(() => {
     const modeParam = searchParams.get("mode");
@@ -22,8 +23,33 @@ const AuthPage = () => {
     }
   }, [searchParams]);
 
-  // Redirect if already authenticated
-  if (isAuthenticated && !isLoading) {
+  // Wait for loading to complete
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated - but check email verification first
+  if (isAuthenticated && user) {
+    // If user is not email verified, redirect to email verification
+    if (!user.isEmailVerified) {
+      return <Navigate to="/verify-email" replace />;
+    }
+
+    // If user is verified but hasn't completed onboarding, redirect to onboarding
+    if (!user.onboardingCompleted) {
+      return <Navigate to="/onboarding" replace />;
+    }
+
+    // If user is admin, redirect to admin dashboard
+    if (user.userType === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    // Otherwise, redirect to user dashboard
     return <Navigate to="/dashboard" replace />;
   }
 

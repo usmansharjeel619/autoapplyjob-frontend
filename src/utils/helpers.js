@@ -1,74 +1,48 @@
-// Date Helpers
-export const formatDate = (date, format = "MMM DD, YYYY") => {
-  if (!date) return "";
+// src/utils/helpers.js
+import { STORAGE_KEYS } from "./constants";
 
-  const d = new Date(date);
-  const options = {};
+// Local Storage Helpers - FIXED VERSION
+export const getStorageItem = (key, defaultValue = null) => {
+  try {
+    const item = localStorage.getItem(key);
 
-  switch (format) {
-    case "MMM DD, YYYY":
-      options.year = "numeric";
-      options.month = "short";
-      options.day = "2-digit";
-      break;
-    case "MM/DD/YYYY":
-      return d.toLocaleDateString("en-US");
-    case "relative":
-      return getRelativeTime(d);
-    default:
-      return d.toLocaleDateString();
+    // Check if item exists and is not null/undefined
+    if (item === null || item === undefined || item === "undefined") {
+      return defaultValue;
+    }
+
+    return JSON.parse(item);
+  } catch (error) {
+    console.error(`Error getting item from localStorage: ${error}`);
+    return defaultValue;
   }
-
-  return d.toLocaleDateString("en-US", options);
 };
 
-export const getRelativeTime = (date) => {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
+export const setStorageItem = (key, value) => {
+  try {
+    // Don't store null or undefined values
+    if (value === null || value === undefined) {
+      removeStorageItem(key);
+      return;
+    }
 
-  if (diffInSeconds < 60) return "Just now";
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 2592000)
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  if (diffInSeconds < 31536000)
-    return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
-  return `${Math.floor(diffInSeconds / 31536000)}y ago`;
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error setting item in localStorage: ${error}`);
+  }
 };
 
-// String Helpers
-export const capitalize = (str) => {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+export const removeStorageItem = (key) => {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error(`Error removing item from localStorage: ${error}`);
+  }
 };
 
-export const capitalizeWords = (str) => {
-  if (!str) return "";
-  return str
-    .split(" ")
-    .map((word) => capitalize(word))
-    .join(" ");
-};
-
-export const truncateText = (text, maxLength = 100) => {
-  if (!text || text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + "...";
-};
-
-export const slugify = (text) => {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
-};
-
-// Number Helpers
+// Format currency
 export const formatCurrency = (amount, currency = "USD") => {
-  if (!amount && amount !== 0) return "";
+  if (!amount) return "Not specified";
 
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -78,37 +52,99 @@ export const formatCurrency = (amount, currency = "USD") => {
   }).format(amount);
 };
 
-export const formatNumber = (num, decimals = 0) => {
-  if (!num && num !== 0) return "";
+// Format date
+export const formatDate = (date, options = {}) => {
+  if (!date) return "";
 
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(num);
+  const defaultOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    ...options,
+  };
+
+  return new Date(date).toLocaleDateString("en-US", defaultOptions);
 };
 
-export const formatPercentage = (value, decimals = 1) => {
-  if (!value && value !== 0) return "";
-  return `${(value * 100).toFixed(decimals)}%`;
+// Format time ago
+export const formatTimeAgo = (date) => {
+  if (!date) return "";
+
+  const now = new Date();
+  const diffInMs = now - new Date(date);
+  const diffInSecs = Math.floor(diffInMs / 1000);
+  const diffInMins = Math.floor(diffInSecs / 60);
+  const diffInHours = Math.floor(diffInMins / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInDays > 0) {
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+  } else if (diffInHours > 0) {
+    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+  } else if (diffInMins > 0) {
+    return `${diffInMins} minute${diffInMins > 1 ? "s" : ""} ago`;
+  } else {
+    return "Just now";
+  }
 };
 
-// Array Helpers
-export const groupBy = (array, key) => {
-  return array.reduce((result, item) => {
-    const group = item[key];
-    if (!result[group]) {
-      result[group] = [];
-    }
-    result[group].push(item);
-    return result;
-  }, {});
+// Truncate text
+export const truncateText = (text, maxLength = 100) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
 };
 
+// Validate email
+export const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Validate phone
+export const isValidPhone = (phone) => {
+  const phoneRegex = /^[\+]?[\d\s\-\(\)]+$/;
+  return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
+};
+
+// Validate URL
+export const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Get user initials
+export const getInitials = (name) => {
+  if (!name) return "";
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join("");
+};
+
+// Generate random ID
+export const generateId = () => {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+};
+
+// Debounce function
+export const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(null, args), delay);
+  };
+};
+
+// Array helpers
 export const sortBy = (array, key, direction = "asc") => {
   return [...array].sort((a, b) => {
     const aVal = a[key];
     const bVal = b[key];
-
     if (aVal < bVal) return direction === "asc" ? -1 : 1;
     if (aVal > bVal) return direction === "asc" ? 1 : -1;
     return 0;
@@ -133,7 +169,7 @@ export const filterBy = (array, filters) => {
   });
 };
 
-// Object Helpers
+// Object helpers
 export const omit = (obj, keys) => {
   const result = { ...obj };
   keys.forEach((key) => delete result[key]);
@@ -154,7 +190,7 @@ export const deepClone = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 };
 
-// File Helpers
+// File helpers
 export const getFileExtension = (filename) => {
   return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 };
@@ -177,7 +213,7 @@ export const isValidFileSize = (file, maxSize) => {
   return file.size <= maxSize;
 };
 
-// URL Helpers
+// URL helpers
 export const buildQueryString = (params) => {
   const searchParams = new URLSearchParams();
 
@@ -211,86 +247,4 @@ export const parseQueryString = (queryString) => {
   }
 
   return result;
-};
-
-// Local Storage Helpers
-export const getStorageItem = (key, defaultValue = null) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
-  } catch (error) {
-    console.error(`Error getting item from localStorage: ${error}`);
-    return defaultValue;
-  }
-};
-
-export const setStorageItem = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error setting item in localStorage: ${error}`);
-  }
-};
-
-export const removeStorageItem = (key) => {
-  try {
-    localStorage.removeItem(key);
-  } catch (error) {
-    console.error(`Error removing item from localStorage: ${error}`);
-  }
-};
-
-// Validation Helpers
-export const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-export const isValidPhone = (phone) => {
-  const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
-  return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
-};
-
-export const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-// Debounce Helper
-export const debounce = (func, delay) => {
-  let timeoutId;
-  return (...args) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func.apply(null, args), delay);
-  };
-};
-
-// Color Helpers
-export const hexToRgb = (hex) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : null;
-};
-
-export const getInitials = (name) => {
-  if (!name) return "";
-  return name
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join("");
-};
-
-// Generate Random ID
-export const generateId = () => {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
 };

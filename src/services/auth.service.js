@@ -1,3 +1,4 @@
+// src/services/auth.service.js
 import { apiPost, apiGet, apiPut } from "./api";
 import { API_ENDPOINTS } from "../utils/constants";
 
@@ -29,6 +30,11 @@ class AuthService {
 
   async verifyEmail(token) {
     const response = await apiPost(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { token });
+    return response;
+  }
+
+  async resendEmailVerification() {
+    const response = await apiPost(API_ENDPOINTS.AUTH.RESEND_VERIFICATION);
     return response.data;
   }
 
@@ -52,11 +58,6 @@ class AuthService {
       currentPassword,
       newPassword,
     });
-    return response.data;
-  }
-
-  async resendEmailVerification() {
-    const response = await apiPost(API_ENDPOINTS.AUTH.RESEND_VERIFICATION);
     return response.data;
   }
 

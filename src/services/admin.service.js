@@ -1,24 +1,74 @@
+// src/services/admin.service.js
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from "./api";
 import { API_ENDPOINTS } from "../utils/constants";
 
 class AdminService {
   // Dashboard & Analytics
   async getDashboardStats() {
-    const response = await apiGet(API_ENDPOINTS.ADMIN.DASHBOARD);
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.ADMIN.DASHBOARD);
+      return response.data;
+    } catch (error) {
+      console.warn(
+        "Failed to fetch dashboard stats, using fallback data:",
+        error
+      );
+      // Return fallback data to prevent UI crashes
+      return {
+        stats: {
+          totalUsers: 0,
+          activeApplications: 0,
+          pendingReviews: 0,
+          successRate: 0,
+          jobsScraped: 0,
+          averageMatchScore: 0,
+        },
+        recentApplications: [],
+        topPerformingJobs: [],
+        userActivity: [],
+        systemHealth: {
+          scrapingStatus: "inactive",
+          lastScrapingRun: null,
+          totalJobsScraped: 0,
+        },
+      };
+    }
   }
 
   async getAnalytics(period = "30d") {
-    const response = await apiGet(
-      `${API_ENDPOINTS.ADMIN.ANALYTICS}?period=${period}`
-    );
-    return response.data;
+    try {
+      const response = await apiGet(
+        `${API_ENDPOINTS.ADMIN.ANALYTICS}?period=${period}`
+      );
+      return response.data;
+    } catch (error) {
+      console.warn("Failed to fetch analytics, using fallback data:", error);
+      return {
+        kpis: [],
+        userGrowth: [],
+        applicationTrends: [],
+        conversionFunnel: [],
+      };
+    }
   }
 
   // User Management
   async getAllUsers(params = {}) {
-    const response = await apiGet(API_ENDPOINTS.ADMIN.USERS, { params });
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.ADMIN.USERS, { params });
+      return response.data;
+    } catch (error) {
+      console.warn("Failed to fetch users, using fallback data:", error);
+      return {
+        users: [],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
   }
 
   async getUser(userId) {
@@ -48,8 +98,23 @@ class AdminService {
 
   // Application Management
   async getAllApplications(params = {}) {
-    const response = await apiGet(API_ENDPOINTS.ADMIN.APPLICATIONS, { params });
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.ADMIN.APPLICATIONS, {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn("Failed to fetch applications, using fallback data:", error);
+      return {
+        applications: [],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
   }
 
   async getApplication(applicationId) {
@@ -80,8 +145,21 @@ class AdminService {
 
   // Job Management (Scraped Jobs)
   async getScrapedJobs(params = {}) {
-    const response = await apiGet(API_ENDPOINTS.ADMIN.JOBS, { params });
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.ADMIN.JOBS, { params });
+      return response.data;
+    } catch (error) {
+      console.warn("Failed to fetch jobs, using fallback data:", error);
+      return {
+        jobs: [],
+        pagination: {
+          page: 1,
+          pageSize: 20,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
   }
 
   async approveJob(jobId) {
@@ -100,8 +178,37 @@ class AdminService {
 
   // System Settings
   async getSystemSettings() {
-    const response = await apiGet(API_ENDPOINTS.ADMIN.SYSTEM_SETTINGS);
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.ADMIN.SYSTEM_SETTINGS);
+      return response.data;
+    } catch (error) {
+      console.warn("Failed to fetch system settings, using defaults:", error);
+      return {
+        settings: {
+          scraping: {
+            maxJobsPerUser: 100,
+            scrapingInterval: 24,
+            enabledPlatforms: ["linkedin", "indeed", "glassdoor"],
+            autoApproveJobs: false,
+          },
+          applications: {
+            maxApplicationsPerDay: 10,
+            autoApplyEnabled: false,
+            requireAdminReview: true,
+          },
+          email: {
+            notifications: true,
+            dailyDigest: true,
+            applicationUpdates: true,
+          },
+          system: {
+            maintenanceMode: false,
+            registrationEnabled: true,
+            debugMode: false,
+          },
+        },
+      };
+    }
   }
 
   async updateSystemSettings(settings) {

@@ -1,3 +1,4 @@
+// src/pages/EmailVerificationPage.js
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Mail, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
@@ -14,7 +15,7 @@ const EmailVerificationPage = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { showSuccess, showError } = useApp();
   const navigate = useNavigate();
 
@@ -39,7 +40,16 @@ const EmailVerificationPage = () => {
   const handleEmailVerification = async (token) => {
     setLoading(true);
     try {
-      await authService.verifyEmail(token);
+      const response = await authService.verifyEmail(token);
+
+      // Update user context with verified status
+      if (response.data && response.data.user) {
+        updateUser(response.data.user);
+      } else {
+        // Fallback: manually update the verification status
+        updateUser({ isEmailVerified: true });
+      }
+
       setVerificationStatus("success");
       showSuccess("Email verified successfully!");
 
@@ -165,12 +175,13 @@ const EmailVerificationPage = () => {
               : "Resend Verification Email"}
           </Button>
 
-          <div className="text-center">
+          <div className="text-sm text-gray-500">
+            Wrong email?{" "}
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-primary-600 hover:text-primary-500 font-medium"
             >
-              Use a different email address
+              Sign up with a different email
             </button>
           </div>
         </div>
@@ -181,19 +192,14 @@ const EmailVerificationPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
-        <Card>
-          <Card.Body className="p-8">
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-lg">AA</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Verify Your Email
-              </h2>
-            </div>
-
-            {renderContent()}
-          </Card.Body>
+        <Card className="p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Verify Your Email
+            </h1>
+            <p className="text-gray-600 mt-2">Complete your account setup</p>
+          </div>
+          {renderContent()}
         </Card>
       </div>
     </div>
