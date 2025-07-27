@@ -132,9 +132,11 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AA</span>
-              </div>
+              <img
+                src="/images/logo.png"
+                alt="AutoApplyJob Logo"
+                className="w-8 h-8"
+              />
               <span className="font-bold text-xl text-black">AutoApplyJob</span>
             </div>
 
@@ -168,8 +170,11 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section with Full Screen Image */}
-      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-black to-gray-800">
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+      <section
+        className="relative h-screen flex items-center justify-center bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/hero-background.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
           <h1 className="text-6xl md:text-7xl font-bold mb-6">
             Let Us Find Your
@@ -505,9 +510,11 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">AA</span>
-                </div>
+                <img
+                  src="/images/logo-white.png"
+                  alt="AutoApplyJob Logo"
+                  className="w-8 h-8"
+                />
                 <span className="font-bold text-xl">AutoApplyJob</span>
               </div>
               <p className="text-gray-400">
@@ -545,7 +552,7 @@ const LandingPage = () => {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2024 AutoApplyJob. All rights reserved.</p>
+            <p>© 2025 AutoApplyJob. All rights reserved.</p>
           </div>
         </div>
       </footer>

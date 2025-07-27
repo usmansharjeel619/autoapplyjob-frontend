@@ -197,7 +197,7 @@ class ValidationSchema {
   custom(validator, message = "Invalid value") {
     if (this.currentField) {
       this.rules[this.currentField].push({
-        validator,
+        validator: (value, data) => validator(value, data),
         message,
       });
     }
@@ -211,7 +211,8 @@ class ValidationSchema {
       const value = data[fieldName];
 
       for (const rule of fieldRules) {
-        if (!rule.validator(value)) {
+        // Pass both value and data to validator for custom validators
+        if (!rule.validator(value, data)) {
           errors[fieldName] = rule.message;
           break; // Stop at first error for this field
         }
@@ -238,13 +239,13 @@ export const signupValidation = new ValidationSchema()
   .field("name")
   .required()
   .minLength(2)
-  .maxLength(50)
+  .maxLength(100) // Changed to match backend (100 characters max)
   .field("email")
   .required()
   .email()
   .field("password")
   .required()
-  .minLength(8)
+  .minLength(6) // Changed to match backend (6 characters min)
   .pattern(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
     "Password must contain at least one uppercase letter, one lowercase letter, and one number"

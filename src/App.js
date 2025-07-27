@@ -1,10 +1,16 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import AuthGuard from "./components/auth/AuthGuard";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import UserDashboard from "./pages/user/Dashboard";
 import UserProfile from "./pages/user/Profile";
@@ -31,7 +37,17 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth" element={<AuthPage />} />
 
-              {/* Protected User Routes */}
+              {/* Email Verification Route - requires auth but not email verification */}
+              <Route
+                path="/verify-email"
+                element={
+                  <AuthGuard requireEmailVerification={false}>
+                    <EmailVerificationPage />
+                  </AuthGuard>
+                }
+              />
+
+              {/* Protected User Routes - require email verification */}
               <Route
                 path="/onboarding"
                 element={
@@ -72,6 +88,17 @@ function App() {
               />
 
               <Route
+                path="/jobs"
+                element={
+                  <AuthGuard>
+                    <Layout>
+                      <UserJobs />
+                    </Layout>
+                  </AuthGuard>
+                }
+              />
+
+              <Route
                 path="/tools"
                 element={
                   <AuthGuard>
@@ -93,11 +120,11 @@ function App() {
                 }
               />
 
-              {/* Admin Routes */}
+              {/* Admin Routes - don't require email verification for admin users */}
               <Route
                 path="/admin/dashboard"
                 element={
-                  <AuthGuard adminOnly>
+                  <AuthGuard adminOnly requireEmailVerification={false}>
                     <Layout isAdmin>
                       <AdminDashboard />
                     </Layout>
@@ -108,7 +135,7 @@ function App() {
               <Route
                 path="/admin/applicants"
                 element={
-                  <AuthGuard adminOnly>
+                  <AuthGuard adminOnly requireEmailVerification={false}>
                     <Layout isAdmin>
                       <AdminApplicants />
                     </Layout>
@@ -119,7 +146,7 @@ function App() {
               <Route
                 path="/admin/applications"
                 element={
-                  <AuthGuard adminOnly>
+                  <AuthGuard adminOnly requireEmailVerification={false}>
                     <Layout isAdmin>
                       <AdminApplications />
                     </Layout>
@@ -130,13 +157,16 @@ function App() {
               <Route
                 path="/admin/analytics"
                 element={
-                  <AuthGuard adminOnly>
+                  <AuthGuard adminOnly requireEmailVerification={false}>
                     <Layout isAdmin>
                       <AdminAnalytics />
                     </Layout>
                   </AuthGuard>
                 }
               />
+
+              {/* 404 Route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </AppProvider>

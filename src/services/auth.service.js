@@ -55,9 +55,14 @@ class AuthService {
     return response.data;
   }
 
+  async resendEmailVerification() {
+    const response = await apiPost(API_ENDPOINTS.AUTH.RESEND_VERIFICATION);
+    return response.data;
+  }
+
   async verifyToken(token) {
     try {
-      const response = await apiGet("/auth/verify", {
+      const response = await apiGet(API_ENDPOINTS.AUTH.VERIFY, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.status === 200;

@@ -11,8 +11,12 @@ const AuthPage = () => {
 
   useEffect(() => {
     const modeParam = searchParams.get("mode");
-    if (modeParam === "signup") {
+
+    // Support multiple mode parameters
+    if (modeParam === "signup" || modeParam === "register") {
       setMode("signup");
+    } else if (modeParam === "forgot" || modeParam === "forgot-password") {
+      setMode("forgot");
     } else {
       setMode("login");
     }
@@ -23,11 +27,20 @@ const AuthPage = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const renderAuthForm = () => {
+    switch (mode) {
+      case "signup":
+        return <SignupForm />;
+      case "forgot":
+        return <LoginForm />;
+      default:
+        return <LoginForm />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {mode === "login" ? <LoginForm /> : <SignupForm />}
-      </div>
+      <div className="max-w-md w-full space-y-8">{renderAuthForm()}</div>
     </div>
   );
 };

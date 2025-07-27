@@ -2,14 +2,11 @@ import React, { useState, useEffect } from "react";
 import {
   Search,
   Filter,
-  CheckCircle,
-  XCircle,
-  Clock,
   Eye,
-  FileText,
+  Mail,
   Download,
-  AlertCircle,
   Users,
+  MoreVertical,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import adminService from "../../services/admin.service";
@@ -18,468 +15,420 @@ import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 
-const Applications = () => {
+const Applicants = () => {
   const { showSuccess, showError } = useApp();
-  const [applications, setApplications] = useState([]);
-  const [filteredApplications, setFilteredApplications] = useState([]);
+  const [applicants, setApplicants] = useState([]);
+  const [filteredApplicants, setFilteredApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [processingIds, setProcessingIds] = useState(new Set());
-  const [selectedApplications, setSelectedApplications] = useState(new Set());
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 20,
     total: 0,
     totalPages: 0,
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    userType: "",
+    isActive: "",
+    experienceLevel: "",
+  });
 
   useEffect(() => {
-    fetchApplications();
-  }, [pagination.page, statusFilter]);
+    fetchApplicants();
+  }, [pagination.page, filters, searchQuery]);
 
   useEffect(() => {
-    filterApplications();
-  }, [applications, searchQuery]);
+    filterApplicants();
+  }, [applicants, searchQuery, filters]);
 
-  const fetchApplications = async () => {
+  const fetchApplicants = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const params = {
         page: pagination.page,
         pageSize: pagination.pageSize,
-        status: statusFilter,
+        search: searchQuery,
+        ...filters,
       };
 
-      const response = await adminService.getAllApplications(params);
-
-      setApplications(response.applications || []);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.total || 0,
-        totalPages: response.totalPages || 0,
-      }));
+      const response = await adminService.getAllUsers(params);
+      setApplicants(response.users || []);
+      setPagination(response.pagination || pagination);
     } catch (error) {
-      showError("Failed to load applications");
-      console.error("Applications fetch error:", error);
+      showError("Failed to load applicants");
+      console.error("Error fetching applicants:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterApplications = () => {
-    if (!searchQuery.trim()) {
-      setFilteredApplications(applications);
-      return;
+  const filterApplicants = () => {
+    let filtered = [...applicants];
+
+    // Apply local search filter if no API search is being used
+    if (searchQuery && !filters.search) {
+      filtered = filtered.filter(
+        (applicant) =>
+          applicant.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          applicant.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          applicant.currentJobTitle
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase())
+      );
     }
 
-    const filtered = applications.filter(
-      (app) =>
-        app.applicantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.company.toLowerCase().includes(searchQuery.toLowerCase())
+    setFilteredApplicants(filtered);
+  };
+
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handleViewProfile = (applicantId) => {
+    // Navigate to applicant profile or open modal
+    console.log("View profile:", applicantId);
+  };
+
+  const handleSendEmail = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
+  const handleExportData = () => {
+    // Implement export functionality
+    showSuccess("Export functionality coming soon!");
+  };
+
+  const experienceLevelOptions = [
+    { value: "", label: "All Experience Levels" },
+    { value: "0-1", label: "Entry Level (0-1 years)" },
+    { value: "1-3", label: "Junior (1-3 years)" },
+    { value: "3-5", label: "Mid-level (3-5 years)" },
+    { value: "5-10", label: "Senior (5-10 years)" },
+    { value: "10+", label: "Expert (10+ years)" },
+  ];
+
+  const statusOptions = [
+    { value: "", label: "All Statuses" },
+    { value: "true", label: "Active" },
+    { value: "false", label: "Inactive" },
+  ];
+
+  const userTypeOptions = [
+    { value: "", label: "All User Types" },
+    { value: "jobseeker", label: "Job Seeker" },
+    { value: "employer", label: "Employer" },
+  ];
+
+  if (loading && applicants.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
-
-    setFilteredApplications(filtered);
-  };
-
-  const handleStatusUpdate = async (applicationId, newStatus) => {
-    try {
-      setProcessingIds((prev) => new Set([...prev, applicationId]));
-
-      await adminService.updateApplicationStatus(applicationId, newStatus);
-
-      setApplications((prev) =>
-        prev.map((app) =>
-          app.id === applicationId ? { ...app, status: newStatus } : app
-        )
-      );
-
-      showSuccess(`Application ${newStatus.replace("_", " ")} successfully`);
-    } catch (error) {
-      showError(`Failed to ${newStatus.replace("_", " ")} application`);
-      console.error("Status update error:", error);
-    } finally {
-      setProcessingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(applicationId);
-        return next;
-      });
-    }
-  };
-
-  const handleBulkAction = async (action) => {
-    if (selectedApplications.size === 0) {
-      showError("Please select applications first");
-      return;
-    }
-
-    try {
-      const applicationIds = Array.from(selectedApplications);
-
-      switch (action) {
-        case "approve":
-          for (const id of applicationIds) {
-            await adminService.updateApplicationStatus(id, "approved");
-          }
-          showSuccess(`${applicationIds.length} applications approved`);
-          break;
-        case "reject":
-          for (const id of applicationIds) {
-            await adminService.updateApplicationStatus(id, "rejected");
-          }
-          showSuccess(`${applicationIds.length} applications rejected`);
-          break;
-        case "export":
-          // Implement export functionality
-          showSuccess("Export started");
-          break;
-      }
-
-      setSelectedApplications(new Set());
-      fetchApplications();
-    } catch (error) {
-      showError(`Failed to ${action} applications`);
-    }
-  };
-
-  const toggleSelection = (applicationId) => {
-    setSelectedApplications((prev) => {
-      const next = new Set(prev);
-      if (next.has(applicationId)) {
-        next.delete(applicationId);
-      } else {
-        next.add(applicationId);
-      }
-      return next;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedApplications.size === filteredApplications.length) {
-      setSelectedApplications(new Set());
-    } else {
-      setSelectedApplications(
-        new Set(filteredApplications.map((app) => app.id))
-      );
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending_review":
-        return "bg-yellow-100 text-yellow-800";
-      case "approved":
-      case "applied":
-        return "bg-green-100 text-green-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      case "interview_scheduled":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Applications Management
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Applicants</h1>
           <p className="text-gray-600">
-            Review and manage job applications from users
+            Manage and review all registered users and applicants
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
-          {selectedApplications.size > 0 && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => handleBulkAction("approve")}
-                className="flex items-center space-x-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>Approve ({selectedApplications.size})</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleBulkAction("reject")}
-                className="flex items-center space-x-2"
-              >
-                <XCircle className="w-4 h-4" />
-                <span>Reject ({selectedApplications.size})</span>
-              </Button>
-            </>
-          )}
-
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={() => handleBulkAction("export")}
-            className="flex items-center space-x-2"
+            onClick={handleExportData}
+            icon={<Download size={20} />}
           >
-            <Download className="w-4 h-4" />
-            <span>Export</span>
+            Export Data
           </Button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <Card.Body>
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                type="text"
-                placeholder="Search applications..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={<Search className="w-5 h-5" />}
-              />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <Card.Body className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Applicants</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {pagination.total}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
+          </Card.Body>
+        </Card>
 
-            <div className="flex items-center space-x-3">
-              <Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                options={[
-                  { value: "", label: "All Statuses" },
-                  { value: "pending_review", label: "Pending Review" },
-                  { value: "approved", label: "Approved" },
-                  { value: "applied", label: "Applied" },
-                  { value: "rejected", label: "Rejected" },
+        <Card>
+          <Card.Body className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Active Users</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {applicants.filter((a) => a.isActive).length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+
+        <Card>
+          <Card.Body className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Applications</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {applicants.reduce(
+                    (sum, a) => sum + (a.applicationCount || 0),
+                    0
+                  )}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
+
+        <Card>
+          <Card.Body className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">New This Month</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {
-                    value: "interview_scheduled",
-                    label: "Interview Scheduled",
-                  },
-                ]}
-              />
-
-              <Button onClick={fetchApplications} disabled={loading}>
-                Refresh
-              </Button>
+                    applicants.filter((a) => {
+                      const created = new Date(a.createdAt);
+                      const now = new Date();
+                      return (
+                        created.getMonth() === now.getMonth() &&
+                        created.getFullYear() === now.getFullYear()
+                      );
+                    }).length
+                  }
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-orange-600" />
+              </div>
             </div>
+          </Card.Body>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <Card.Body className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Input
+              placeholder="Search applicants..."
+              value={searchQuery}
+              onChange={handleSearch}
+              icon={<Search size={20} />}
+            />
+
+            <Select
+              options={statusOptions}
+              value={filters.isActive}
+              onChange={(value) => handleFilterChange("isActive", value)}
+              placeholder="Filter by status"
+            />
+
+            <Select
+              options={userTypeOptions}
+              value={filters.userType}
+              onChange={(value) => handleFilterChange("userType", value)}
+              placeholder="Filter by user type"
+            />
+
+            <Select
+              options={experienceLevelOptions}
+              value={filters.experienceLevel}
+              onChange={(value) => handleFilterChange("experienceLevel", value)}
+              placeholder="Filter by experience"
+            />
           </div>
         </Card.Body>
       </Card>
 
-      {/* Applications Table */}
+      {/* Applicants Table */}
       <Card>
         <Card.Body className="p-0">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading applications...</p>
-            </div>
-          ) : filteredApplications.length > 0 ? (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left">
-                        <input
-                          type="checkbox"
-                          checked={
-                            selectedApplications.size ===
-                              filteredApplications.length &&
-                            filteredApplications.length > 0
-                          }
-                          onChange={toggleSelectAll}
-                          className="rounded border-gray-300"
-                        />
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Applicant
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Job Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Match Score
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submitted
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredApplications.map((application) => (
-                      <tr key={application.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedApplications.has(application.id)}
-                            onChange={() => toggleSelection(application.id)}
-                            className="rounded border-gray-300"
-                          />
-                        </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {application.applicantName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {application.applicantEmail}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="font-medium text-gray-900">
-                              {application.jobTitle}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {application.company}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {application.location}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                              application.status
-                            )}`}
-                          >
-                            {application.status.replace("_", " ")}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Applicant
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Experience
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Applications
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredApplicants.map((applicant) => (
+                  <tr key={applicant._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-medium text-sm">
+                            {applicant.name?.charAt(0) || "U"}
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${application.matchScore}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">
-                              {application.matchScore}%
-                            </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {applicant.name || "Unknown"}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {new Date(
-                            application.submittedAt
-                          ).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              href={`/admin/applications/${application.id}`}
-                            >
-                              <Eye className="w-3 h-3" />
-                            </Button>
-
-                            {application.status === "pending_review" && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      application.id,
-                                      "approved"
-                                    )
-                                  }
-                                  disabled={processingIds.has(application.id)}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
-                                >
-                                  <CheckCircle className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleStatusUpdate(
-                                      application.id,
-                                      "rejected"
-                                    )
-                                  }
-                                  disabled={processingIds.has(application.id)}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                  <XCircle className="w-3 h-3" />
-                                </Button>
-                              </>
-                            )}
+                          <div className="text-sm text-gray-500">
+                            {applicant.currentJobTitle || "No job title"}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {applicant.email}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {applicant.phone || "No phone"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {applicant.experienceLevel || "Not specified"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {applicant.skills?.slice(0, 3).join(", ") ||
+                          "No skills listed"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {applicant.applicationCount || 0} applications
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Joined{" "}
+                        {new Date(applicant.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          applicant.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {applicant.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewProfile(applicant._id)}
+                          icon={<Eye size={16} />}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSendEmail(applicant.email)}
+                          icon={<Mail size={16} />}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<MoreVertical size={16} />}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-                  <div className="text-sm text-gray-600">
-                    Showing {(pagination.page - 1) * pagination.pageSize + 1}-
-                    {Math.min(
-                      pagination.page * pagination.pageSize,
-                      pagination.total
-                    )}{" "}
-                    of {pagination.total} applications
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page === 1}
-                      onClick={() =>
-                        setPagination((prev) => ({
-                          ...prev,
-                          page: prev.page - 1,
-                        }))
-                      }
-                    >
-                      Previous
-                    </Button>
-
-                    <span className="text-sm text-gray-600">
-                      Page {pagination.page} of {pagination.totalPages}
-                    </span>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page === pagination.totalPages}
-                      onClick={() =>
-                        setPagination((prev) => ({
-                          ...prev,
-                          page: prev.page + 1,
-                        }))
-                      }
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
+          {filteredApplicants.length === 0 && !loading && (
             <div className="text-center py-12">
-              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No applications found
+              <Users className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No applicants found
               </h3>
-              <p className="text-gray-600">
-                {searchQuery || statusFilter
-                  ? "Try adjusting your search or filter criteria"
-                  : "Applications will appear here when users start applying for jobs"}
+              <p className="mt-1 text-sm text-gray-500">
+                {searchQuery || Object.values(filters).some((f) => f)
+                  ? "Try adjusting your search or filters."
+                  : "No applicants have registered yet."}
               </p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="px-6 py-3 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing {(pagination.page - 1) * pagination.pageSize + 1} to{" "}
+                  {Math.min(
+                    pagination.page * pagination.pageSize,
+                    pagination.total
+                  )}{" "}
+                  of {pagination.total} results
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page === pagination.totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </Card.Body>
@@ -488,4 +437,4 @@ const Applications = () => {
   );
 };
 
-export default Applications;
+export default Applicants;

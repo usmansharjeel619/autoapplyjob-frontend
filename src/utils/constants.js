@@ -4,38 +4,47 @@ export const API_BASE_URL =
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
-    LOGOUT: "/auth/logout",
-    REFRESH: "/auth/refresh",
-    VERIFY_EMAIL: "/auth/verify-email",
-    FORGOT_PASSWORD: "/auth/forgot-password",
-    RESET_PASSWORD: "/auth/reset-password",
-    CHANGE_PASSWORD: "/auth/change-password",
+    LOGIN: `/auth/login`,
+    REGISTER: `/auth/register`,
+    LOGOUT: `/auth/logout`,
+    REFRESH: `/auth/refresh`,
+    VERIFY_EMAIL: `/auth/verify-email`,
+    FORGOT_PASSWORD: `/auth/forgot-password`,
+    RESET_PASSWORD: `/auth/reset-password`,
+    CHANGE_PASSWORD: `/auth/change-password`,
+    VERIFY: `/auth/verify`,
+    RESEND_VERIFICATION: `/auth/resend-verification`,
   },
   USER: {
-    PROFILE: "/user/profile",
-    UPDATE_PROFILE: "/user/profile",
-    UPLOAD_RESUME: "/user/resume",
-    GET_JOBS: "/user/jobs",
-    SAVED_JOBS: "/user/saved-jobs",
-    APPLICATION_HISTORY: "/user/applications",
-    SETTINGS: "/user/settings",
-    DASHBOARD_STATS: "/user/dashboard",
+    PROFILE: `/user/profile`,
+    UPDATE_PROFILE: `/user/profile`,
+    UPLOAD_RESUME: `/user/resume`,
+    GET_JOBS: `/user/jobs`,
+    SAVED_JOBS: `/user/saved-jobs`,
+    APPLICATION_HISTORY: `/user/applications`,
+    SETTINGS: `/user/settings`,
+    DASHBOARD_STATS: `/user/dashboard`,
+    ONBOARDING: `/user/onboarding`,
   },
   ADMIN: {
-    DASHBOARD: "/admin/dashboard",
-    USERS: "/admin/users",
-    APPLICATIONS: "/admin/applications",
-    JOBS: "/admin/jobs",
-    ANALYTICS: "/admin/analytics",
-    SYSTEM_SETTINGS: "/admin/settings",
+    DASHBOARD: `/admin/dashboard`,
+    USERS: `/admin/users`,
+    APPLICATIONS: `/admin/applications`,
+    JOBS: `/admin/jobs`,
+    ANALYTICS: `/admin/analytics`,
+    SYSTEM_SETTINGS: `/admin/settings`,
   },
   JOBS: {
-    SEARCH: "/jobs/search",
-    DETAILS: "/jobs/:id",
-    APPLY: "/jobs/:id/apply",
-    SCRAPED_JOBS: "/jobs/scraped",
+    SEARCH: `/jobs/search`,
+    DETAILS: `/jobs/:id`,
+    APPLY: `/jobs/:id/apply`,
+    SCRAPED_JOBS: `/jobs/scraped`,
+  },
+  APPLICATIONS: {
+    CREATE: `/applications`,
+    GET_ALL: `/applications`,
+    GET_BY_ID: `/applications/:id`,
+    UPDATE_STATUS: `/applications/:id/status`,
   },
 };
 
@@ -73,11 +82,11 @@ export const ONBOARDING_STEPS = {
 
 // Experience Levels
 export const EXPERIENCE_LEVELS = [
-  { value: "0-1", label: "0-1 years" },
-  { value: "1-3", label: "1-3 years" },
-  { value: "3-5", label: "3-5 years" },
-  { value: "5-10", label: "5-10 years" },
-  { value: "10+", label: "10+ years" },
+  { value: "0-1", label: "Entry Level (0-1 years)" },
+  { value: "1-3", label: "Junior (1-3 years)" },
+  { value: "3-5", label: "Mid-level (3-5 years)" },
+  { value: "5-10", label: "Senior (5-10 years)" },
+  { value: "10+", label: "Expert (10+ years)" },
 ];
 
 // Education Levels
@@ -90,24 +99,10 @@ export const EDUCATION_LEVELS = [
   { value: "other", label: "Other" },
 ];
 
-// Industries
-export const INDUSTRIES = [
-  { value: "technology", label: "Technology" },
-  { value: "finance", label: "Finance" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "education", label: "Education" },
-  { value: "retail", label: "Retail" },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "consulting", label: "Consulting" },
-  { value: "marketing", label: "Marketing" },
-  { value: "real_estate", label: "Real Estate" },
-  { value: "other", label: "Other" },
-];
-
 // Job Types
 export const JOB_TYPES = [
-  { value: "full_time", label: "Full-time" },
-  { value: "part_time", label: "Part-time" },
+  { value: "full_time", label: "Full Time" },
+  { value: "part_time", label: "Part Time" },
   { value: "contract", label: "Contract" },
   { value: "freelance", label: "Freelance" },
   { value: "internship", label: "Internship" },
@@ -124,57 +119,21 @@ export const WORK_TYPES = [
 export const APPLICATION_STATUS = {
   PENDING: "pending",
   APPLIED: "applied",
-  VIEWED: "viewed",
-  INTERVIEW: "interview",
+  REVIEWING: "reviewing",
+  INTERVIEWING: "interviewing",
   REJECTED: "rejected",
   ACCEPTED: "accepted",
+  WITHDRAWN: "withdrawn",
 };
 
-// Application Status Labels
-export const APPLICATION_STATUS_LABELS = {
-  [APPLICATION_STATUS.PENDING]: "Pending",
-  [APPLICATION_STATUS.APPLIED]: "Applied",
-  [APPLICATION_STATUS.VIEWED]: "Viewed",
-  [APPLICATION_STATUS.INTERVIEW]: "Interview",
-  [APPLICATION_STATUS.REJECTED]: "Rejected",
-  [APPLICATION_STATUS.ACCEPTED]: "Accepted",
+// Local Storage Keys
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: "auth_token",
+  REFRESH_TOKEN: "refresh_token",
+  USER_DATA: "user_data",
+  THEME: "theme",
+  LANGUAGE: "language",
 };
-
-// Job Platforms
-export const JOB_PLATFORMS = [
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "indeed", label: "Indeed" },
-  { value: "glassdoor", label: "Glassdoor" },
-  { value: "monster", label: "Monster" },
-  { value: "ziprecruiter", label: "ZipRecruiter" },
-  { value: "careerbuilder", label: "CareerBuilder" },
-];
-
-// Common Skills (for autocomplete)
-export const COMMON_SKILLS = [
-  "JavaScript",
-  "Python",
-  "Java",
-  "React",
-  "Node.js",
-  "HTML/CSS",
-  "SQL",
-  "MongoDB",
-  "PostgreSQL",
-  "AWS",
-  "Docker",
-  "Git",
-  "Project Management",
-  "Data Analysis",
-  "Machine Learning",
-  "Digital Marketing",
-  "Sales",
-  "Customer Service",
-  "Leadership",
-  "Communication",
-  "Problem Solving",
-  "Team Management",
-];
 
 // File Upload Constants
 export const FILE_UPLOAD = {
@@ -187,24 +146,135 @@ export const FILE_UPLOAD = {
   ALLOWED_EXTENSIONS: [".pdf", ".doc", ".docx"],
 };
 
-// Pagination
-export const PAGINATION = {
-  DEFAULT_PAGE_SIZE: 10,
-  PAGE_SIZE_OPTIONS: [10, 25, 50, 100],
-};
+// Industries
+export const INDUSTRIES = [
+  { value: "technology", label: "Technology" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "finance", label: "Finance" },
+  { value: "education", label: "Education" },
+  { value: "retail", label: "Retail" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "consulting", label: "Consulting" },
+  { value: "media", label: "Media & Entertainment" },
+  { value: "real_estate", label: "Real Estate" },
+  { value: "automotive", label: "Automotive" },
+  { value: "aerospace", label: "Aerospace" },
+  { value: "energy", label: "Energy" },
+  { value: "government", label: "Government" },
+  { value: "nonprofit", label: "Non-Profit" },
+  { value: "other", label: "Other" },
+];
 
-// Local Storage Keys
-export const STORAGE_KEYS = {
-  AUTH_TOKEN: "auth_token",
-  USER_DATA: "user_data",
-  ONBOARDING_PROGRESS: "onboarding_progress",
-  THEME: "theme",
-};
+// Common Skills
+export const COMMON_SKILLS = [
+  // Programming Languages
+  "JavaScript",
+  "Python",
+  "Java",
+  "C++",
+  "C#",
+  "PHP",
+  "TypeScript",
+  "Go",
+  "Rust",
+  "Swift",
+  "Kotlin",
 
-// Theme Options
+  // Frontend Technologies
+  "React",
+  "Vue.js",
+  "Angular",
+  "HTML",
+  "CSS",
+  "SASS",
+  "jQuery",
+  "Bootstrap",
+  "Tailwind CSS",
+
+  // Backend Technologies
+  "Node.js",
+  "Express.js",
+  "Django",
+  "Flask",
+  "Spring Boot",
+  "Laravel",
+  "Ruby on Rails",
+  ".NET",
+
+  // Databases
+  "MySQL",
+  "PostgreSQL",
+  "MongoDB",
+  "Redis",
+  "SQLite",
+  "Oracle",
+  "SQL Server",
+
+  // Cloud & DevOps
+  "AWS",
+  "Azure",
+  "Google Cloud",
+  "Docker",
+  "Kubernetes",
+  "Jenkins",
+  "Git",
+  "GitHub",
+  "GitLab",
+
+  // Mobile Development
+  "React Native",
+  "Flutter",
+  "iOS Development",
+  "Android Development",
+
+  // Data & Analytics
+  "SQL",
+  "Data Analysis",
+  "Machine Learning",
+  "AI",
+  "TensorFlow",
+  "PyTorch",
+  "Pandas",
+  "NumPy",
+
+  // Design
+  "UI/UX Design",
+  "Figma",
+  "Adobe Creative Suite",
+  "Sketch",
+  "Photoshop",
+  "Illustrator",
+
+  // Project Management
+  "Agile",
+  "Scrum",
+  "Kanban",
+  "Jira",
+  "Trello",
+  "Project Management",
+
+  // Marketing & Sales
+  "Digital Marketing",
+  "SEO",
+  "SEM",
+  "Social Media Marketing",
+  "Content Marketing",
+  "Sales",
+
+  // General Business
+  "Communication",
+  "Leadership",
+  "Problem Solving",
+  "Team Work",
+  "Critical Thinking",
+  "Creativity",
+];
+
+// Themes
 export const THEMES = {
   LIGHT: "light",
   DARK: "dark",
+  SYSTEM: "system",
 };
 
 // Notification Types

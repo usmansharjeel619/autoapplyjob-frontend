@@ -113,7 +113,15 @@ const BasicInfo = ({
         <Select
           label="Experience Level"
           value={formData.experienceLevel}
-          onChange={(e) => handleInputChange("experienceLevel", e.target.value)}
+          onChange={(e) => {
+            // Safely handle the event - check if e exists and has target
+            if (e && e.target) {
+              handleInputChange("experienceLevel", e.target.value);
+            } else if (e) {
+              // Handle case where e might be the value itself
+              handleInputChange("experienceLevel", e);
+            }
+          }}
           error={errors.experienceLevel}
           required
           options={[
@@ -125,7 +133,15 @@ const BasicInfo = ({
         <Select
           label="Education Level"
           value={formData.educationLevel}
-          onChange={(e) => handleInputChange("educationLevel", e.target.value)}
+          onChange={(e) => {
+            // Safely handle the event - check if e exists and has target
+            if (e && e.target) {
+              handleInputChange("educationLevel", e.target.value);
+            } else if (e) {
+              // Handle case where e might be the value itself
+              handleInputChange("educationLevel", e);
+            }
+          }}
           error={errors.educationLevel}
           required
           options={[

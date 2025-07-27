@@ -187,12 +187,36 @@ export const AuthProvider = ({ children }) => {
     setStorageItem(STORAGE_KEYS.USER_DATA, updatedUser);
   };
 
+  // Helper function to get user display name
+  const getUserDisplayName = () => {
+    if (!state.user) return "Guest";
+
+    // Try name first, then email username, then fallback
+    if (state.user.name) {
+      return state.user.name;
+    }
+
+    if (state.user.email) {
+      // Extract username from email (part before @)
+      return state.user.email.split("@")[0];
+    }
+
+    return "User";
+  };
+
+  // Helper function to check if user is admin
+  const isAdmin = () => {
+    return state.user?.userType === "admin";
+  };
+
   const value = {
     ...state,
     login,
     register,
     logout,
     updateUser,
+    getUserDisplayName,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

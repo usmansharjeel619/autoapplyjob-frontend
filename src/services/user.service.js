@@ -1,4 +1,11 @@
-import { apiGet, apiPost, apiPut, apiPatch, apiPostFile } from "./api";
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiPatch,
+  apiDelete,
+  apiPostFile,
+} from "./api";
 import { API_ENDPOINTS } from "../utils/constants";
 
 class UserService {
