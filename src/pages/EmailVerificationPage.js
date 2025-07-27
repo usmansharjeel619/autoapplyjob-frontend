@@ -22,6 +22,7 @@ const EmailVerificationPage = () => {
   // Auto-verify if token is in URL
   useEffect(() => {
     const token = searchParams.get("token");
+    console.log("EmailVerificationPage - Token from URL:", token);
     if (token) {
       handleEmailVerification(token);
     }

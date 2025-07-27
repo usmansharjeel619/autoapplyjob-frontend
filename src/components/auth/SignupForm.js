@@ -64,7 +64,6 @@ const SignupForm = () => {
         showSuccess(
           "Account created successfully! Please check your email to verify your account."
         );
-        navigate("/verify-email");
       }
     } catch (error) {
       console.error("Registration error:", error);

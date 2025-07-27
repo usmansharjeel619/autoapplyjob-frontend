@@ -5,12 +5,12 @@ import { API_ENDPOINTS } from "../utils/constants";
 class AuthService {
   async login(credentials) {
     const response = await apiPost(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async register(userData) {
     const response = await apiPost(API_ENDPOINTS.AUTH.REGISTER, userData);
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async logout() {
@@ -25,7 +25,7 @@ class AuthService {
     const response = await apiPost(API_ENDPOINTS.AUTH.REFRESH, {
       refreshToken,
     });
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async verifyEmail(token) {
@@ -35,14 +35,14 @@ class AuthService {
 
   async resendEmailVerification() {
     const response = await apiPost(API_ENDPOINTS.AUTH.RESEND_VERIFICATION);
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async forgotPassword(email) {
     const response = await apiPost(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
       email,
     });
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async resetPassword(token, password) {
@@ -50,7 +50,7 @@ class AuthService {
       token,
       password,
     });
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async changePassword(currentPassword, newPassword) {
@@ -58,7 +58,7 @@ class AuthService {
       currentPassword,
       newPassword,
     });
-    return response.data;
+    return response.data.data || response.data;
   }
 
   async verifyToken(token) {

@@ -38,14 +38,7 @@ function App() {
               <Route path="/auth" element={<AuthPage />} />
 
               {/* Email Verification Route - requires auth but not email verification */}
-              <Route
-                path="/verify-email"
-                element={
-                  <AuthGuard requireEmailVerification={false}>
-                    <EmailVerificationPage />
-                  </AuthGuard>
-                }
-              />
+              <Route path="/verify-email" element={<EmailVerificationPage />} />
 
               {/* Protected User Routes - require email verification */}
               <Route

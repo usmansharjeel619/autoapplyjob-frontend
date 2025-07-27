@@ -48,15 +48,7 @@ const LoginForm = () => {
 
       if (result.user) {
         showSuccess("Login successful! Welcome back.");
-
-        // Redirect based on user type
-        if (result.user.userType === "admin") {
-          navigate("/admin/dashboard");
-        } else if (result.user.onboardingCompleted) {
-          navigate("/dashboard");
-        } else {
-          navigate("/onboarding");
-        }
+        window.location.href = "/";
       }
     } catch (error) {
       showError(

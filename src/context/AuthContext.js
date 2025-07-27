@@ -85,11 +85,11 @@ export const AuthProvider = ({ children }) => {
           if (isValid) {
             // Get fresh user data
             const freshUserData = await userService.getProfile();
-
+            console.log("AuthContext - Fresh user data:", freshUserData); // Debug log
             dispatch({
               type: "LOGIN_SUCCESS",
               payload: {
-                user: freshUserData,
+                user: freshUserData?.user,
                 token,
               },
             });
@@ -120,8 +120,15 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: "LOGIN_START" });
 
     try {
+      console.log("AuthContext - Attempting login with:", credentials.email); // Debug log
       const response = await authService.login(credentials);
       const { user, token, refreshToken } = response;
+
+      console.log("AuthContext - Login response:", {
+        user,
+        token: !!token,
+        refreshToken: !!refreshToken,
+      }); // Debug log
 
       // Store auth data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
@@ -133,8 +140,10 @@ export const AuthProvider = ({ children }) => {
         payload: { user, token },
       });
 
+      console.log("AuthContext - Login successful, user state updated"); // Debug log
       return response;
     } catch (error) {
+      console.error("AuthContext - Login failed:", error); // Debug log
       dispatch({
         type: "LOGIN_FAILURE",
         payload: error.response?.data?.message || "Login failed",
