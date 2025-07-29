@@ -96,7 +96,7 @@ const UserDashboard = () => {
           Welcome back, {user?.name?.split(" ")[0] || "User"}! 👋
         </h1>
         <p className="text-blue-100">
-          {stats.pendingApplications > 0
+          {stats?.pendingApplications > 0
             ? `You have ${stats.pendingApplications} pending applications`
             : "Keep up the great work on your job search!"}
         </p>
@@ -106,41 +106,41 @@ const UserDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatsCard
           title="Total Applications"
-          value={stats.totalApplications}
+          value={stats?.totalApplications}
           icon={<Briefcase className="w-5 h-5" />}
           color="blue"
           trend={{
-            value: stats.applicationsTrend,
-            isPositive: stats.applicationsTrend > 0,
+            value: stats?.applicationsTrend,
+            isPositive: stats?.applicationsTrend > 0,
           }}
         />
         <StatsCard
           title="Pending"
-          value={stats.pendingApplications}
+          value={stats?.pendingApplications}
           icon={<Clock className="w-5 h-5" />}
           color="yellow"
         />
         <StatsCard
           title="Interviews"
-          value={stats.scheduledInterviews}
+          value={stats?.scheduledInterviews}
           icon={<Users className="w-5 h-5" />}
           color="green"
         />
         <StatsCard
           title="Job Matches"
-          value={stats.jobMatches}
+          value={stats?.jobMatches}
           icon={<Target className="w-5 h-5" />}
           color="purple"
         />
         <StatsCard
           title="Profile Complete"
-          value={`${stats.profileCompleteness}%`}
+          value={`${stats?.profileCompleteness}%`}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatsCard
           title="Response Rate"
-          value={`${stats.responseRate}%`}
+          value={`${stats?.responseRate}%`}
           icon={<TrendingUp className="w-5 h-5" />}
           color="indigo"
         />
@@ -160,9 +160,9 @@ const UserDashboard = () => {
             </div>
           </Card.Header>
           <Card.Body>
-            {recentApplications.length > 0 ? (
+            {recentApplications?.length > 0 ? (
               <div className="space-y-4">
-                {recentApplications.slice(0, 5).map((application) => (
+                {recentApplications?.slice(0, 5).map((application) => (
                   <div
                     key={application.id}
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
@@ -222,9 +222,9 @@ const UserDashboard = () => {
             </div>
           </Card.Header>
           <Card.Body>
-            {recommendedJobs.length > 0 ? (
+            {recommendedJobs?.length > 0 ? (
               <div className="space-y-4">
-                {recommendedJobs.slice(0, 3).map((job) => (
+                {recommendedJobs?.slice(0, 3).map((job) => (
                   <JobCard
                     key={job.id}
                     job={job}
@@ -249,7 +249,7 @@ const UserDashboard = () => {
       </div>
 
       {/* Upcoming Interviews */}
-      {upcomingInterviews.length > 0 && (
+      {upcomingInterviews?.length > 0 && (
         <Card>
           <Card.Header>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -258,7 +258,7 @@ const UserDashboard = () => {
           </Card.Header>
           <Card.Body>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {upcomingInterviews.map((interview) => (
+              {upcomingInterviews?.map((interview) => (
                 <div
                   key={interview.id}
                   className="p-4 border border-gray-200 rounded-lg"

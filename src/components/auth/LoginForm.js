@@ -48,7 +48,7 @@ const LoginForm = () => {
 
       if (result.user) {
         showSuccess("Login successful! Welcome back.");
-        window.location.href = "/";
+        // window.location.href = "/";
       }
     } catch (error) {
       showError(
