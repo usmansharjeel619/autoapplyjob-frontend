@@ -34,6 +34,13 @@ export const API_ENDPOINTS = {
     ANALYTICS: `/admin/analytics`,
     SYSTEM_SETTINGS: `/admin/settings`,
   },
+  AI: {
+    EXTRACT_TEXT: `/ai/extract-text`,
+    PARSE_RESUME: `/ai/parse-resume`,
+    ENHANCE_RESUME: `/ai/enhance-resume`,
+    ANALYZE_JOB_MATCH: `/ai/analyze-job-match`,
+    STATUS: `/ai/status`,
+  },
   JOBS: {
     SEARCH: `/jobs/search`,
     DETAILS: `/jobs/:id`,
