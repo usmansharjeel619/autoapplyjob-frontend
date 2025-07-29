@@ -120,10 +120,19 @@ const OnboardingPage = () => {
   };
 
   const handleComplete = async () => {
-    // Clear onboarding progress since we're done
-    clearOnboardingProgress();
-    // Redirect to payment screen instead of dashboard
-    navigate("/payment");
+    try {
+      // Update user state to mark onboarding as completed
+      await updateUser({ onboardingCompleted: true });
+
+      // Clear onboarding progress since we're done
+      clearOnboardingProgress();
+
+      // Redirect to payment screen
+      navigate("/payment");
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
+      // Handle error appropriately
+    }
   };
 
   const progress = ((currentStep + 1) / steps.length) * 100;
