@@ -55,7 +55,7 @@ export const API_ENDPOINTS = {
   },
 };
 
-// Application Routes (same as before)
+// Application Routes (same as API endpoints structure for frontend routing)
 export const ROUTES = {
   HOME: "/",
   AUTH: "/auth",
@@ -133,6 +133,15 @@ export const APPLICATION_STATUS = {
   WITHDRAWN: "withdrawn",
 };
 
+// AI Status Constants - ADDED THIS!
+export const AI_STATUS = {
+  NOT_CONFIGURED: "not_configured",
+  OPERATIONAL: "operational",
+  INVALID_KEY: "invalid_key",
+  ERROR: "error",
+  UNAVAILABLE: "unavailable",
+};
+
 // Local Storage Keys
 export const STORAGE_KEYS = {
   AUTH_TOKEN: "auth_token",
@@ -140,6 +149,7 @@ export const STORAGE_KEYS = {
   USER_DATA: "user_data",
   THEME: "theme",
   LANGUAGE: "language",
+  ONBOARDING_PROGRESS: "onboarding_progress",
 };
 
 // File Upload Constants

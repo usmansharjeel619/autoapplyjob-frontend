@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
@@ -25,6 +25,10 @@ const OnboardingPage = () => {
   } = useApp();
   const navigate = useNavigate();
 
+  // Use refs to track if we've already initialized to prevent multiple loads
+  const initializedRef = useRef(false);
+  const isUpdatingProgressRef = useRef(false);
+
   const steps = [
     {
       key: ONBOARDING_STEPS.BASIC_INFO,
@@ -48,11 +52,14 @@ const OnboardingPage = () => {
 
   // Load saved progress on mount - only run once
   useEffect(() => {
-    if (onboardingProgress) {
+    if (!initializedRef.current && onboardingProgress) {
+      initializedRef.current = true;
       setCurrentStep(onboardingProgress.currentStep || 0);
-      setStepData(onboardingProgress.stepData || stepData);
+      setStepData(
+        (prevStepData) => onboardingProgress.stepData || prevStepData
+      );
     }
-  }, []); // Empty dependency array - only run once on mount
+  }, [onboardingProgress]);
 
   // Memoized function to update step data to prevent infinite loops
   const updateStepData = useCallback(
@@ -63,11 +70,19 @@ const OnboardingPage = () => {
           [stepKey]: { ...prev[stepKey], ...data },
         };
 
-        // Save progress immediately when data changes
-        setOnboardingProgress({
-          currentStep,
-          stepData: newStepData,
-        });
+        // Prevent circular updates
+        if (!isUpdatingProgressRef.current) {
+          isUpdatingProgressRef.current = true;
+          // Save progress immediately when data changes
+          setOnboardingProgress({
+            currentStep,
+            stepData: newStepData,
+          });
+          // Reset flag after a short delay
+          setTimeout(() => {
+            isUpdatingProgressRef.current = false;
+          }, 100);
+        }
 
         return newStepData;
       });
@@ -75,13 +90,20 @@ const OnboardingPage = () => {
     [currentStep, setOnboardingProgress]
   );
 
-  // Save progress when step changes
+  // Save progress when step changes - but avoid circular dependencies
   useEffect(() => {
-    setOnboardingProgress({
-      currentStep,
-      stepData,
-    });
-  }, [currentStep]); // Only depend on currentStep
+    if (initializedRef.current && !isUpdatingProgressRef.current) {
+      isUpdatingProgressRef.current = true;
+      setOnboardingProgress({
+        currentStep,
+        stepData,
+      });
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingProgressRef.current = false;
+      }, 100);
+    }
+  }, [currentStep, setOnboardingProgress]); // Include setOnboardingProgress for completeness
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -98,6 +120,8 @@ const OnboardingPage = () => {
   };
 
   const handleComplete = async () => {
+    // Clear onboarding progress since we're done
+    clearOnboardingProgress();
     // Redirect to payment screen instead of dashboard
     navigate("/payment");
   };

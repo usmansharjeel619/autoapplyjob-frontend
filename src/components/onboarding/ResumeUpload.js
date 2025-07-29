@@ -263,51 +263,6 @@ const ResumeUpload = ({
 
   return (
     <div className="space-y-6">
-      {/* AI Status Indicator */}
-      {aiStatus && (
-        <Card
-          className={`border-l-4 ${
-            aiStatus.status === AI_STATUS.OPERATIONAL
-              ? "border-green-500 bg-green-50"
-              : "border-yellow-500 bg-yellow-50"
-          }`}
-        >
-          <Card.Body>
-            <div className="flex items-center gap-3">
-              {aiStatus.status === AI_STATUS.OPERATIONAL ? (
-                <Zap className="text-green-600" size={20} />
-              ) : (
-                <AlertCircle className="text-yellow-600" size={20} />
-              )}
-              <div>
-                <p
-                  className={`font-medium ${
-                    aiStatus.status === AI_STATUS.OPERATIONAL
-                      ? "text-green-800"
-                      : "text-yellow-800"
-                  }`}
-                >
-                  {aiStatus.status === AI_STATUS.OPERATIONAL
-                    ? "AI Parsing Available"
-                    : "Limited AI Functionality"}
-                </p>
-                <p
-                  className={`text-sm ${
-                    aiStatus.status === AI_STATUS.OPERATIONAL
-                      ? "text-green-700"
-                      : "text-yellow-700"
-                  }`}
-                >
-                  {aiStatus.status === AI_STATUS.OPERATIONAL
-                    ? "Advanced AI parsing with OpenAI is ready"
-                    : "Using alternative parsing methods"}
-                </p>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
-      )}
-
       {/* File Upload Area */}
       {!uploadedFile ? (
         <div
