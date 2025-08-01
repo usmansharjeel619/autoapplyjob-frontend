@@ -9,7 +9,7 @@ import {
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -24,6 +24,9 @@ api.interceptors.request.use(
 
     // Add request timestamp for debugging
     config.metadata = { startTime: new Date() };
+    if (config.url && config.url.includes("/ai/")) {
+      config.timeout = 90000; // 90 seconds for AI operations
+    }
 
     return config;
   },
@@ -42,10 +45,9 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-
+    console.log("originalRequest:", originalRequest);
     if (error.response) {
       const { status, data } = error.response;
-
       switch (status) {
         case 401:
           // Try to refresh token first

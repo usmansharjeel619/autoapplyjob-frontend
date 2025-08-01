@@ -672,12 +672,6 @@ const ResumeUpload = ({
                 : " using basic text extraction"}
               . You can edit and add more details in the next steps.
             </p>
-            {aiStatus?.status !== AI_STATUS.OPERATIONAL && (
-              <p className="text-sm text-yellow-700 mt-2">
-                For better accuracy, ensure your OpenAI API is properly
-                configured.
-              </p>
-            )}
           </div>
 
           {/* Statistics */}

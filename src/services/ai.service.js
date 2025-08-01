@@ -1,24 +1,24 @@
-// src/services/ai.service.js
+// src/services/ai.service.js - Frontend AI Service (Backend Only)
 import { apiPost } from "./api";
 import { API_ENDPOINTS } from "../utils/constants";
 
 class AIService {
   constructor() {
-    this.openaiApiKey = process.env.REACT_APP_OPENAI_API_KEY;
-    this.openaiApiUrl = "https://api.openai.com/v1/chat/completions";
+    // Remove all OpenAI direct access from frontend
+    // All AI operations should go through the backend
   }
 
-  // Extract text from PDF files using a text extraction service
+  // Extract text from files using backend service only
   async extractTextFromFile(file) {
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      // First, extract text from the file using backend service
       const response = await apiPost(API_ENDPOINTS.AI.EXTRACT_TEXT, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 60000, // 60 seconds for file processing
       });
 
       return response.data.text;
@@ -28,205 +28,7 @@ class AIService {
     }
   }
 
-  // Parse resume using OpenAI GPT API
-  async parseResumeWithOpenAI(fileText) {
-    try {
-      const prompt = `
-Please analyze the following resume text and extract structured information in JSON format. 
-Extract the following information:
-
-1. Personal Information (name, email, phone, location if available)
-2. Skills (technical skills, soft skills, programming languages, tools, frameworks)
-3. Work Experience (job title, company, dates, description, achievements)
-4. Education (degree, institution, graduation year, GPA if mentioned)
-5. Certifications (certification name, issuing organization, date)
-6. Projects (project name, description, technologies used)
-7. Languages (spoken languages and proficiency levels)
-
-Resume text:
-${fileText}
-
-Please return the data in this exact JSON structure:
-{
-  "personalInfo": {
-    "name": "",
-    "email": "",
-    "phone": "",
-    "location": ""
-  },
-  "extractedSkills": [],
-  "workExperience": [
-    {
-      "title": "",
-      "company": "",
-      "duration": "",
-      "description": "",
-      "achievements": []
-    }
-  ],
-  "education": [
-    {
-      "degree": "",
-      "institution": "",
-      "year": "",
-      "gpa": ""
-    }
-  ],
-  "certifications": [
-    {
-      "name": "",
-      "issuer": "",
-      "date": ""
-    }
-  ],
-  "projects": [
-    {
-      "name": "",
-      "description": "",
-      "technologies": []
-    }
-  ],
-  "languages": [
-    {
-      "language": "",
-      "proficiency": ""
-    }
-  ]
-}
-
-Only return the JSON object, no additional text or explanations.
-`;
-
-      const requestBody = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert resume parser. Extract information accurately and return only valid JSON.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 2000,
-        temperature: 0.1,
-        response_format: { type: "json_object" },
-      };
-
-      const response = await fetch(this.openaiApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.openaiApiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `OpenAI API error: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      const parsedContent = JSON.parse(data.choices[0].message.content);
-
-      return this.processOpenAIResponse(parsedContent);
-    } catch (error) {
-      console.error("OpenAI parsing failed:", error);
-      throw new Error("Failed to parse resume with AI");
-    }
-  }
-
-  // Process and validate OpenAI response
-  processOpenAIResponse(openaiResponse) {
-    try {
-      // Ensure all required fields exist with defaults
-      const processedData = {
-        personalInfo: {
-          name: openaiResponse.personalInfo?.name || "",
-          email: openaiResponse.personalInfo?.email || "",
-          phone: openaiResponse.personalInfo?.phone || "",
-          location: openaiResponse.personalInfo?.location || "",
-        },
-        extractedSkills: Array.isArray(openaiResponse.extractedSkills)
-          ? openaiResponse.extractedSkills.filter(
-              (skill) => skill && skill.trim()
-            )
-          : [],
-        workExperience: Array.isArray(openaiResponse.workExperience)
-          ? openaiResponse.workExperience.map((exp) => ({
-              title: exp.title || "",
-              company: exp.company || "",
-              duration: exp.duration || "",
-              description: exp.description || "",
-              achievements: Array.isArray(exp.achievements)
-                ? exp.achievements
-                : [],
-            }))
-          : [],
-        education: Array.isArray(openaiResponse.education)
-          ? openaiResponse.education.map((edu) => ({
-              degree: edu.degree || "",
-              institution: edu.institution || "",
-              year: edu.year || "",
-              gpa: edu.gpa || "",
-            }))
-          : [],
-        certifications: Array.isArray(openaiResponse.certifications)
-          ? openaiResponse.certifications.map((cert) => ({
-              name: cert.name || "",
-              issuer: cert.issuer || "",
-              date: cert.date || "",
-            }))
-          : [],
-        projects: Array.isArray(openaiResponse.projects)
-          ? openaiResponse.projects.map((proj) => ({
-              name: proj.name || "",
-              description: proj.description || "",
-              technologies: Array.isArray(proj.technologies)
-                ? proj.technologies
-                : [],
-            }))
-          : [],
-        languages: Array.isArray(openaiResponse.languages)
-          ? openaiResponse.languages.map((lang) => ({
-              language: lang.language || "",
-              proficiency: lang.proficiency || "",
-            }))
-          : [],
-      };
-
-      return processedData;
-    } catch (error) {
-      console.error("Error processing OpenAI response:", error);
-      throw new Error("Failed to process AI response");
-    }
-  }
-
-  // Main method to parse resume
-  async parseResume(file) {
-    try {
-      // Step 1: Extract text from file
-      const fileText = await this.extractTextFromFile(file);
-
-      if (!fileText || fileText.trim().length === 0) {
-        throw new Error("No text could be extracted from the file");
-      }
-
-      // Step 2: Parse with OpenAI
-      const parsedData = await this.parseResumeWithOpenAI(fileText);
-
-      return parsedData;
-    } catch (error) {
-      console.error("Resume parsing failed:", error);
-      throw error;
-    }
-  }
-
-  // Alternative method using backend service for full parsing
+  // Parse resume using backend service only (NO direct OpenAI calls)
   async parseResumeViaBackend(file) {
     try {
       const formData = new FormData();
@@ -236,79 +38,178 @@ Only return the JSON object, no additional text or explanations.
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 60000, // 60 seconds to handle OpenAI processing time
       });
 
-      return this.processOpenAIResponse(response.data.parsedData);
+      console.log("Parsed Resume Response:", response.data);
+      return this.processBackendResponse(response.data.data.parsedData);
     } catch (error) {
       console.error("Backend resume parsing failed:", error);
-      throw new Error("Failed to parse resume");
-    }
-  }
 
-  // Enhance existing resume data with AI suggestions
-  async enhanceResumeData(existingData, targetJobDescription = "") {
-    try {
-      const prompt = `
-Based on the existing resume data and target job description, suggest improvements and additions.
-
-Existing Resume Data:
-${JSON.stringify(existingData, null, 2)}
-
-Target Job Description:
-${targetJobDescription}
-
-Please suggest:
-1. Missing skills that should be highlighted
-2. Better ways to phrase experience descriptions
-3. Additional keywords to include
-4. Achievements that could be quantified
-
-Return suggestions in JSON format:
-{
-  "suggestedSkills": [],
-  "improvedDescriptions": {},
-  "missingKeywords": [],
-  "achievementSuggestions": []
-}
-`;
-
-      const requestBody = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "You are a professional resume writer and career coach.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        max_tokens: 1500,
-        temperature: 0.3,
-        response_format: { type: "json_object" },
-      };
-
-      const response = await fetch(this.openaiApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.openaiApiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
+      if (error.code === "ECONNABORTED") {
         throw new Error(
-          `OpenAI API error: ${response.status} ${response.statusText}`
+          "Request timed out. Please try again with a smaller file."
         );
       }
 
-      const data = await response.json();
-      return JSON.parse(data.choices[0].message.content);
+      if (error.response?.status === 413) {
+        throw new Error("File too large. Please use a smaller resume file.");
+      }
+
+      throw new Error("Failed to parse resume. Please try again.");
+    }
+  }
+
+  // Main method to parse resume (only calls backend)
+  async parseResume(file) {
+    return this.parseResumeViaBackend(file);
+  }
+
+  // Process and validate backend response
+  processBackendResponse(backendData) {
+    try {
+      // The backend already returns structured data, just validate it
+      const processedData = {
+        personalInfo: {
+          name: backendData.personalInfo?.name || "",
+          email: backendData.personalInfo?.email || "",
+          phone: backendData.personalInfo?.phone || "",
+          location: backendData.personalInfo?.location || "",
+        },
+        extractedSkills: Array.isArray(backendData.extractedSkills)
+          ? backendData.extractedSkills.filter(
+              (skill) => skill && typeof skill === "string" && skill.trim()
+            )
+          : [],
+        workExperience: Array.isArray(backendData.workExperience)
+          ? backendData.workExperience.map((exp) => ({
+              title: exp.title || "",
+              company: exp.company || "",
+              duration: exp.duration || "",
+              description: exp.description || "",
+              achievements: Array.isArray(exp.achievements)
+                ? exp.achievements
+                : [],
+            }))
+          : [],
+        education: Array.isArray(backendData.education)
+          ? backendData.education.map((edu) => ({
+              degree: edu.degree || "",
+              institution: edu.institution || "",
+              year: edu.year || "",
+              gpa: edu.gpa || "",
+            }))
+          : [],
+        certifications: Array.isArray(backendData.certifications)
+          ? backendData.certifications.map((cert) => ({
+              name: cert.name || "",
+              issuer: cert.issuer || "",
+              date: cert.date || "",
+            }))
+          : [],
+        projects: Array.isArray(backendData.projects)
+          ? backendData.projects.map((proj) => ({
+              name: proj.name || "",
+              description: proj.description || "",
+              technologies: Array.isArray(proj.technologies)
+                ? proj.technologies
+                : [],
+              duration: proj.duration || "",
+            }))
+          : [],
+        languages: Array.isArray(backendData.languages)
+          ? backendData.languages.map((lang) => ({
+              language: lang.language || "",
+              proficiency: lang.proficiency || "",
+            }))
+          : [],
+      };
+
+      // Remove empty entries
+      processedData.workExperience = processedData.workExperience.filter(
+        (exp) => exp.title || exp.company
+      );
+      processedData.education = processedData.education.filter(
+        (edu) => edu.degree || edu.institution
+      );
+      processedData.certifications = processedData.certifications.filter(
+        (cert) => cert.name
+      );
+      processedData.projects = processedData.projects.filter(
+        (proj) => proj.name
+      );
+      processedData.languages = processedData.languages.filter(
+        (lang) => lang.language
+      );
+
+      return processedData;
+    } catch (error) {
+      console.error("Error processing backend response:", error);
+      throw new Error("Failed to process parsed resume data");
+    }
+  }
+
+  // Enhance existing resume data with AI suggestions (backend only)
+  async enhanceResumeData(existingData, targetJobDescription = "") {
+    try {
+      const response = await apiPost(
+        API_ENDPOINTS.AI.ENHANCE_RESUME,
+        {
+          resumeData: existingData,
+          targetJobDescription,
+        },
+        {
+          timeout: 45000, // 45 seconds for enhancement
+        }
+      );
+
+      return response.data.suggestions;
     } catch (error) {
       console.error("Resume enhancement failed:", error);
       throw new Error("Failed to enhance resume data");
+    }
+  }
+
+  // Analyze job match (backend only)
+  async analyzeJobMatch(resumeData, jobDescription) {
+    try {
+      const response = await apiPost(
+        API_ENDPOINTS.AI.ANALYZE_JOB_MATCH,
+        {
+          resumeData,
+          jobDescription,
+        },
+        {
+          timeout: 45000, // 45 seconds for analysis
+        }
+      );
+
+      return response.data.analysis;
+    } catch (error) {
+      console.error("Job match analysis failed:", error);
+      throw new Error("Failed to analyze job match");
+    }
+  }
+
+  // Check AI service status (backend only)
+  async checkAIStatus() {
+    try {
+      const response = await apiPost(
+        API_ENDPOINTS.AI.STATUS,
+        {},
+        {
+          timeout: 10000, // 10 seconds for status check
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("AI status check failed:", error);
+      return {
+        configured: false,
+        status: "unavailable",
+        error: error.message,
+      };
     }
   }
 }
