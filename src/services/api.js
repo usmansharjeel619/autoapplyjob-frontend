@@ -40,76 +40,47 @@ api.interceptors.response.use(
     response.config.metadata.endTime = new Date();
     response.duration =
       response.config.metadata.endTime - response.config.metadata.startTime;
-
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
-    console.log("originalRequest:", originalRequest);
-    if (error.response) {
-      const { status, data } = error.response;
-      switch (status) {
-        case 401:
-          // Try to refresh token first
-          if (!originalRequest._retry) {
-            originalRequest._retry = true;
 
-            try {
-              const refreshToken = getStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
-              if (refreshToken) {
-                const response = await api.post("/auth/refresh", {
-                  refreshToken,
-                });
-                const { token } = response.data;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-                setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-
-                return api(originalRequest);
-              }
-            } catch (refreshError) {
-              // Refresh failed, logout user
-              removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-              removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
-              removeStorageItem(STORAGE_KEYS.USER_DATA);
-              window.location.href = "/auth";
-              return Promise.reject(refreshError);
-            }
-          }
-
-          // If refresh also failed or no refresh token
-          removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-          removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
-          removeStorageItem(STORAGE_KEYS.USER_DATA);
-          window.location.href = "/auth";
-          break;
-
-        case 403:
-          console.error("Access denied");
-          break;
-
-        case 422:
-          // Validation errors - let components handle
-          break;
-
-        case 429:
-          console.error("Rate limit exceeded");
-          break;
-
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          console.error("Server error occurred");
-          break;
-
-        default:
-          console.error(
-            `HTTP ${status}: ${data?.message || "An error occurred"}`
-          );
+      // Don't try to refresh if this IS the refresh request
+      if (originalRequest.url?.includes("/auth/refresh")) {
+        // Refresh token is invalid, clear everything and redirect
+        removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+        removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+        removeStorageItem(STORAGE_KEYS.USER_DATA);
+        window.location.href = "/auth";
+        return Promise.reject(error);
       }
-    } else if (error.request) {
-      console.error("Network error - please check your connection");
+
+      try {
+        const refreshToken = getStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken,
+        });
+
+        const { token } = response.data.data || response.data;
+        setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, logout user
+        removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+        removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+        removeStorageItem(STORAGE_KEYS.USER_DATA);
+        window.location.href = "/auth";
+        return Promise.reject(refreshError);
+      }
     }
 
     return Promise.reject(error);

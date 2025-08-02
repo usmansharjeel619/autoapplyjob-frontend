@@ -193,6 +193,7 @@ const PaymentPage = () => {
           paymentCompleted: true,
           paymentCompletedAt: new Date(),
           selectedPlan: selectedPlan,
+          onboardingCompleted: true,
         });
 
         alert("Payment successful! Welcome to AutoApplyJob.");

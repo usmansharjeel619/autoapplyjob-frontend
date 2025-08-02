@@ -211,7 +211,7 @@ const SignupForm = () => {
         </form>
 
         {/* Divider */}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
@@ -222,7 +222,6 @@ const SignupForm = () => {
           </div>
         </div>
 
-        {/* Google Signup */}
         <div className="mt-6">
           <Button
             type="button"
@@ -251,7 +250,7 @@ const SignupForm = () => {
             </svg>
             Sign up with Google
           </Button>
-        </div>
+        </div> */}
 
         {/* Login Link */}
         <div className="mt-6 text-center">
