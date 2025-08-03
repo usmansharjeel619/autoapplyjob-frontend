@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   Upload,
   FileText,
@@ -31,6 +31,9 @@ const ResumeUpload = ({
   const [aiStatus, setAiStatus] = useState(null);
   const [parsingProgress, setParsingProgress] = useState("");
   const { showError, showSuccess, showWarning } = useApp();
+
+  // Ref for the hidden file input
+  const fileInputRef = useRef(null);
 
   // Check AI service status on component mount
   useEffect(() => {
@@ -81,11 +84,22 @@ const ResumeUpload = ({
     }
   };
 
+  // Handle clicking the upload area or button
+  const handleUploadClick = () => {
+    if (fileInputRef.current && !uploading) {
+      fileInputRef.current.click();
+    }
+  };
+
   const handleFileUpload = async (file) => {
     // Validate file
     const validation = validateFile(file, {
-      maxSize: FILE_UPLOAD.MAX_SIZE,
-      allowedTypes: FILE_UPLOAD.ALLOWED_TYPES,
+      maxSize: FILE_UPLOAD.MAX_SIZE || 5 * 1024 * 1024, // 5MB default
+      allowedTypes: FILE_UPLOAD.ALLOWED_TYPES || [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ],
     });
 
     if (!validation.isValid) {
@@ -266,15 +280,16 @@ const ResumeUpload = ({
       {/* File Upload Area */}
       {!uploadedFile ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors cursor-pointer ${
             dragActive
               ? "border-primary-500 bg-primary-50"
-              : "border-gray-300 hover:border-gray-400"
+              : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
+          onClick={handleUploadClick}
         >
           <Upload className="mx-auto text-gray-400 mb-4" size={48} />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -284,18 +299,23 @@ const ResumeUpload = ({
             Drag and drop your resume file here, or click to browse
           </p>
 
+          {/* Hidden file input */}
           <input
+            ref={fileInputRef}
             type="file"
             accept=".pdf,.doc,.docx"
             onChange={handleFileSelect}
             className="hidden"
-            id="resume-upload"
           />
-          <label htmlFor="resume-upload">
-            <Button variant="outline" loading={uploading}>
-              {uploading ? "Uploading..." : "Choose File"}
-            </Button>
-          </label>
+
+          {/* Upload button */}
+          <Button
+            variant="outline"
+            onClick={handleUploadClick}
+            disabled={uploading}
+          >
+            {uploading ? "Uploading..." : "Choose File"}
+          </Button>
 
           <p className="text-sm text-gray-500 mt-4">
             Supported formats: PDF, DOC, DOCX (Max 5MB)
@@ -361,15 +381,16 @@ const ResumeUpload = ({
       {uploadedFile && !parsing && !parsedData && (
         <Card className="border-red-200 bg-red-50">
           <Card.Body>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="text-red-600" size={20} />
-                <div>
-                  <h4 className="font-medium text-gray-900">Parsing failed</h4>
-                  <p className="text-sm text-gray-600">
-                    We couldn't extract information from your resume
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-red-600" size={20} />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900">
+                  Resume parsing failed
+                </h4>
+                <p className="text-sm text-gray-600">
+                  There was an issue extracting information from your resume.
+                  You can try again or continue with manual entry.
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -384,294 +405,163 @@ const ResumeUpload = ({
         </Card>
       )}
 
-      {/* Parsed Data Preview */}
+      {/* Parsed Data Display */}
       {parsedData && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Extracted Information
-            </h3>
-            {aiStatus?.status === AI_STATUS.OPERATIONAL && (
-              <div className="flex items-center gap-2 text-sm text-green-600">
-                <Zap size={16} />
-                <span>AI Enhanced</span>
-              </div>
-            )}
-          </div>
-
-          {/* Personal Information */}
-          {(parsedData.personalInfo?.name ||
-            parsedData.personalInfo?.email) && (
-            <Card>
-              <Card.Header>
-                <h4 className="font-medium text-gray-900">
-                  Personal Information
-                </h4>
-              </Card.Header>
-              <Card.Body>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {parsedData.personalInfo.name && (
-                    <div>
-                      <span className="font-medium text-gray-700">Name:</span>
-                      <p className="text-gray-900">
-                        {parsedData.personalInfo.name}
-                      </p>
-                    </div>
-                  )}
-                  {parsedData.personalInfo.email && (
-                    <div>
-                      <span className="font-medium text-gray-700">Email:</span>
-                      <p className="text-gray-900">
-                        {parsedData.personalInfo.email}
-                      </p>
-                    </div>
-                  )}
-                  {parsedData.personalInfo.phone && (
-                    <div>
-                      <span className="font-medium text-gray-700">Phone:</span>
-                      <p className="text-gray-900">
-                        {parsedData.personalInfo.phone}
-                      </p>
-                    </div>
-                  )}
-                  {parsedData.personalInfo.location && (
-                    <div>
-                      <span className="font-medium text-gray-700">
-                        Location:
-                      </span>
-                      <p className="text-gray-900">
-                        {parsedData.personalInfo.location}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Skills */}
-            {parsedData.extractedSkills &&
-              parsedData.extractedSkills.length > 0 && (
-                <Card>
-                  <Card.Header>
-                    <h4 className="font-medium text-gray-900">
-                      Skills ({parsedData.extractedSkills.length})
-                    </h4>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="flex flex-wrap gap-2">
-                      {parsedData.extractedSkills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-primary-100 text-primary-800 rounded-md text-sm"
-                        >
-                          {skill}
+        <div className="space-y-6">
+          <Card>
+            <Card.Header>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Zap className="text-blue-600" />
+                Extracted Information
+              </h3>
+            </Card.Header>
+            <Card.Body className="space-y-4">
+              {/* Personal Information */}
+              {parsedData.personalInfo && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    Personal Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    {parsedData.personalInfo.name && (
+                      <div>
+                        <span className="text-gray-600">Name:</span>{" "}
+                        <span className="font-medium">
+                          {parsedData.personalInfo.name}
                         </span>
-                      ))}
-                    </div>
-                  </Card.Body>
-                </Card>
+                      </div>
+                    )}
+                    {parsedData.personalInfo.email && (
+                      <div>
+                        <span className="text-gray-600">Email:</span>{" "}
+                        <span className="font-medium">
+                          {parsedData.personalInfo.email}
+                        </span>
+                      </div>
+                    )}
+                    {parsedData.personalInfo.phone && (
+                      <div>
+                        <span className="text-gray-600">Phone:</span>{" "}
+                        <span className="font-medium">
+                          {parsedData.personalInfo.phone}
+                        </span>
+                      </div>
+                    )}
+                    {parsedData.personalInfo.location && (
+                      <div>
+                        <span className="text-gray-600">Location:</span>{" "}
+                        <span className="font-medium">
+                          {parsedData.personalInfo.location}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
-            {/* Experience */}
-            {parsedData.workExperience &&
-              parsedData.workExperience.length > 0 && (
-                <Card>
-                  <Card.Header>
-                    <h4 className="font-medium text-gray-900">
-                      Experience ({parsedData.workExperience.length})
+              {/* Skills */}
+              {parsedData.extractedSkills &&
+                parsedData.extractedSkills.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Extracted Skills ({parsedData.extractedSkills.length})
                     </h4>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {parsedData.extractedSkills
+                        .slice(0, 10)
+                        .map((skill, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      {parsedData.extractedSkills.length > 10 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                          +{parsedData.extractedSkills.length - 10} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Work Experience */}
+              {parsedData.workExperience &&
+                parsedData.workExperience.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Work Experience ({parsedData.workExperience.length}{" "}
+                      positions)
+                    </h4>
+                    <div className="space-y-2">
                       {parsedData.workExperience
-                        .slice(0, 2)
+                        .slice(0, 3)
                         .map((exp, index) => (
                           <div
                             key={index}
-                            className="border-b last:border-b-0 pb-3 last:pb-0"
+                            className="text-sm border-l-2 border-blue-200 pl-3"
                           >
-                            <h5 className="font-medium text-gray-900">
-                              {exp.title}
-                            </h5>
-                            <p className="text-sm text-gray-600">
-                              {exp.company} • {exp.duration}
-                            </p>
-                            {exp.description && (
-                              <p className="text-sm text-gray-700 mt-1 line-clamp-2">
-                                {exp.description}
-                              </p>
+                            <div className="font-medium text-gray-900">
+                              {exp.title} {exp.company && `at ${exp.company}`}
+                            </div>
+                            {exp.duration && (
+                              <div className="text-gray-600">
+                                {exp.duration}
+                              </div>
                             )}
                           </div>
                         ))}
-                      {parsedData.workExperience.length > 2 && (
-                        <p className="text-sm text-gray-500 text-center">
-                          +{parsedData.workExperience.length - 2} more positions
-                        </p>
+                      {parsedData.workExperience.length > 3 && (
+                        <div className="text-sm text-gray-500">
+                          +{parsedData.workExperience.length - 3} more positions
+                        </div>
                       )}
                     </div>
-                  </Card.Body>
-                </Card>
-              )}
+                  </div>
+                )}
 
-            {/* Education */}
-            {parsedData.education && parsedData.education.length > 0 && (
-              <Card>
-                <Card.Header>
-                  <h4 className="font-medium text-gray-900">
+              {/* Education */}
+              {parsedData.education && parsedData.education.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">
                     Education ({parsedData.education.length})
                   </h4>
-                </Card.Header>
-                <Card.Body>
                   <div className="space-y-2">
                     {parsedData.education.map((edu, index) => (
-                      <div key={index}>
-                        <h5 className="font-medium text-gray-900">
-                          {edu.degree}
-                        </h5>
-                        <p className="text-sm text-gray-600">
-                          {edu.institution}
-                          {edu.year && ` • ${edu.year}`}
-                          {edu.gpa && ` • GPA: ${edu.gpa}`}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </Card.Body>
-              </Card>
-            )}
-
-            {/* Certifications */}
-            {parsedData.certifications &&
-              parsedData.certifications.length > 0 && (
-                <Card>
-                  <Card.Header>
-                    <h4 className="font-medium text-gray-900">
-                      Certifications ({parsedData.certifications.length})
-                    </h4>
-                  </Card.Header>
-                  <Card.Body>
-                    <div className="space-y-2">
-                      {parsedData.certifications.map((cert, index) => (
-                        <div key={index}>
-                          <h5 className="font-medium text-gray-900">
-                            {cert.name}
-                          </h5>
-                          <p className="text-sm text-gray-600">
-                            {cert.issuer}
-                            {cert.date && ` • ${cert.date}`}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </Card.Body>
-                </Card>
-              )}
-
-            {/* Projects */}
-            {parsedData.projects && parsedData.projects.length > 0 && (
-              <Card>
-                <Card.Header>
-                  <h4 className="font-medium text-gray-900">
-                    Projects ({parsedData.projects.length})
-                  </h4>
-                </Card.Header>
-                <Card.Body>
-                  <div className="space-y-3">
-                    {parsedData.projects.slice(0, 2).map((project, index) => (
                       <div
                         key={index}
-                        className="border-b last:border-b-0 pb-3 last:pb-0"
+                        className="text-sm border-l-2 border-green-200 pl-3"
                       >
-                        <h5 className="font-medium text-gray-900">
-                          {project.name}
-                        </h5>
-                        {project.description && (
-                          <p className="text-sm text-gray-700 mt-1 line-clamp-2">
-                            {project.description}
-                          </p>
+                        <div className="font-medium text-gray-900">
+                          {edu.degree}{" "}
+                          {edu.institution && `from ${edu.institution}`}
+                        </div>
+                        {edu.year && (
+                          <div className="text-gray-600">{edu.year}</div>
                         )}
-                        {project.technologies &&
-                          project.technologies.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {project.technologies
-                                .slice(0, 3)
-                                .map((tech, techIndex) => (
-                                  <span
-                                    key={techIndex}
-                                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
-                                  >
-                                    {tech}
-                                  </span>
-                                ))}
-                              {project.technologies.length > 3 && (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                                  +{project.technologies.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          )}
-                      </div>
-                    ))}
-                    {parsedData.projects.length > 2 && (
-                      <p className="text-sm text-gray-500 text-center">
-                        +{parsedData.projects.length - 2} more projects
-                      </p>
-                    )}
-                  </div>
-                </Card.Body>
-              </Card>
-            )}
-
-            {/* Languages */}
-            {parsedData.languages && parsedData.languages.length > 0 && (
-              <Card>
-                <Card.Header>
-                  <h4 className="font-medium text-gray-900">
-                    Languages ({parsedData.languages.length})
-                  </h4>
-                </Card.Header>
-                <Card.Body>
-                  <div className="space-y-1">
-                    {parsedData.languages.map((lang, index) => (
-                      <div key={index} className="flex justify-between">
-                        <span className="font-medium text-gray-900">
-                          {lang.language}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {lang.proficiency}
-                        </span>
                       </div>
                     ))}
                   </div>
-                </Card.Body>
-              </Card>
-            )}
-          </div>
+                </div>
+              )}
+            </Card.Body>
+          </Card>
 
-          {/* AI Enhancement Notice */}
+          {/* AI Status Note */}
           <div
-            className={`border rounded-lg p-4 ${
+            className={`p-3 rounded-lg text-sm ${
               aiStatus?.status === AI_STATUS.OPERATIONAL
-                ? "bg-blue-50 border-blue-200"
-                : "bg-yellow-50 border-yellow-200"
+                ? "bg-blue-50 border border-blue-200 text-blue-800"
+                : "bg-yellow-50 border border-yellow-200 text-yellow-800"
             }`}
           >
-            <p
-              className={`text-sm ${
-                aiStatus?.status === AI_STATUS.OPERATIONAL
-                  ? "text-blue-800"
-                  : "text-yellow-800"
-              }`}
-            >
-              <strong>Note:</strong> This information was automatically
-              extracted from your resume
-              {aiStatus?.status === AI_STATUS.OPERATIONAL
-                ? " using advanced AI analysis"
-                : " using basic text extraction"}
-              . You can edit and add more details in the next steps.
-            </p>
+            <strong>Note:</strong> This information was automatically extracted
+            from your resume
+            {aiStatus?.status === AI_STATUS.OPERATIONAL
+              ? " using advanced AI analysis"
+              : " using basic text extraction"}
+            . You can edit and add more details in the next steps.
           </div>
 
           {/* Statistics */}

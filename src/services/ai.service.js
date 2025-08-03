@@ -1,5 +1,5 @@
 // src/services/ai.service.js - Frontend AI Service (Backend Only)
-import { apiPost } from "./api";
+import { apiPost, apiGet } from "./api";
 import { API_ENDPOINTS } from "../utils/constants";
 
 class AIService {
@@ -191,16 +191,12 @@ class AIService {
     }
   }
 
-  // Check AI service status (backend only)
+  // Check AI service status (backend only) - FIXED: Use GET instead of POST
   async checkAIStatus() {
     try {
-      const response = await apiPost(
-        API_ENDPOINTS.AI.STATUS,
-        {},
-        {
-          timeout: 10000, // 10 seconds for status check
-        }
-      );
+      const response = await apiGet(API_ENDPOINTS.AI.STATUS, {
+        timeout: 10000, // 10 seconds for status check
+      });
 
       return response.data;
     } catch (error) {

@@ -1,80 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-  Briefcase,
-  Users,
-  TrendingUp,
+  LayoutDashboard,
+  User,
+  Target,
+  Settings,
+  AlertCircle,
   Clock,
   CheckCircle,
-  XCircle,
-  Calendar,
-  FileText,
-  AlertCircle,
-  Target,
-  BarChart3,
+  TrendingUp,
   Activity,
+  FileText,
+  Bot,
+  Bell,
+  Shield,
+  Zap,
 } from "lucide-react";
-import { apiGet } from "../../services/api";
-import { API_ENDPOINTS } from "../../utils/constants";
+import { useAuth } from "../../context/AuthContext";
+import userService from "../../services/user.service";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Redirect if payment not completed
-    if (!user?.paymentCompleted) {
-      navigate("/payment");
-      return;
-    }
-
     fetchDashboardStats();
-  }, [user, navigate]);
+  }, []);
 
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const response = await apiGet(API_ENDPOINTS.USER.DASHBOARD_STATS);
-
-      if (response.data) {
-        setStats(response.data);
-      } else {
-        setError("No data received");
-      }
+      setError(null);
+      const response = await userService.getDashboardStats();
+      setStats(response.data);
     } catch (err) {
-      console.error("Error fetching dashboard stats:", err);
-      setError("Failed to load dashboard data");
+      console.error("Dashboard stats error:", err);
+      setError(err.message || "Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
   };
 
-  // Show loading state
-  if (loading) {
+  if (loading && !stats) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-lg shadow-sm">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -97,12 +78,10 @@ const Dashboard = () => {
     );
   }
 
-  // Check if user is new (no stats or very minimal activity)
+  // Check if user is new (no automated applications yet)
   const isNewUser =
     !stats ||
-    (stats.totalApplications === 0 &&
-      stats.savedJobs === 0 &&
-      stats.profileViews === 0);
+    (stats.automatedApplications === 0 && stats.profileCompleteness < 100);
 
   // Welcome message for new users
   if (isNewUser) {
@@ -115,43 +94,26 @@ const Dashboard = () => {
               Welcome to AutoApplyJob, {user?.name}! 🎉
             </h1>
             <p className="text-gray-600">
-              You've successfully completed your payment and setup. Your job
-              search journey starts here!
+              Your account is set up! Our admin team will now automate job
+              applications for you based on your profile.
             </p>
           </div>
 
-          {/* Quick Stats Preview */}
+          {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Applications
+                    Account Status
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
+                  <p className="text-2xl font-bold text-green-600">Active</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Ready to start applying
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Saved Jobs
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Start saving favorites
+                    Ready for automation
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Target className="w-6 h-6 text-green-600" />
+                  <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
               </div>
             </div>
@@ -160,15 +122,13 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Profile Views
+                    Automated Applications
                   </p>
                   <p className="text-2xl font-bold text-gray-900">0</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Improve your visibility
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Starting soon</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
             </div>
@@ -177,15 +137,34 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Success Rate
+                    Profile Completeness
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">-</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats?.profileCompleteness || 85}%
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Almost complete</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <User className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Admin Status
+                  </p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    Processing
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Data will appear here
+                    Setting up automation
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                  <Clock className="w-6 h-6 text-orange-600" />
                 </div>
               </div>
             </div>
@@ -193,61 +172,46 @@ const Dashboard = () => {
 
           {/* Getting Started Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Quick Actions */}
+            {/* Profile Optimization */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Activity className="w-5 h-5" />
-                Quick Actions
+                <User className="w-5 h-5" />
+                Profile Optimization
               </h2>
               <div className="space-y-3">
-                <button
-                  onClick={() => navigate("/jobs")}
-                  className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Briefcase className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Browse Jobs</h3>
-                      <p className="text-sm text-gray-600">
-                        Find and apply to relevant positions
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
                 <button
                   onClick={() => navigate("/profile")}
                   className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Users className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
                         Complete Profile
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Improve your profile for better matches
+                        Enhance your profile for better job matching
                       </p>
                     </div>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => navigate("/tools")}
+                  onClick={() => navigate("/settings")}
                   className="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Settings className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">AI Tools</h3>
+                      <h3 className="font-medium text-gray-900">
+                        Job Preferences
+                      </h3>
                       <p className="text-sm text-gray-600">
-                        Enhance your resume and cover letters
+                        Set your ideal job criteria for automation
                       </p>
                     </div>
                   </div>
@@ -255,66 +219,60 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Tips for Success */}
+            {/* How It Works */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5" />
-                Tips for Success
+                <Zap className="w-5 h-5" />
+                How Our Automation Works
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-blue-600">1</span>
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-blue-600 text-xs font-bold">1</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Complete Your Profile
-                    </h3>
+                    <h4 className="font-medium text-gray-900">
+                      Profile Analysis
+                    </h4>
                     <p className="text-sm text-gray-600">
-                      Add skills, experience, and preferences for better job
-                      matches
+                      Our AI analyzes your profile and preferences
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-green-600">2</span>
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-green-600 text-xs font-bold">2</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Set Job Preferences
-                    </h3>
+                    <h4 className="font-medium text-gray-900">Job Matching</h4>
                     <p className="text-sm text-gray-600">
-                      Define your ideal role, location, and salary expectations
+                      We find relevant jobs that match your criteria
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-purple-600">3</span>
+                  <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-purple-600 text-xs font-bold">3</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Start Applying
-                    </h3>
+                    <h4 className="font-medium text-gray-900">
+                      Auto Application
+                    </h4>
                     <p className="text-sm text-gray-600">
-                      Use our AI-powered matching to find relevant opportunities
+                      Our team applies to jobs on your behalf
                     </p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-orange-600">4</span>
+                  <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-orange-600 text-xs font-bold">4</span>
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">
+                    <h4 className="font-medium text-gray-900">
                       Track Progress
-                    </h3>
+                    </h4>
                     <p className="text-sm text-gray-600">
-                      Monitor your applications and interview schedules
+                      Monitor applications and responses here
                     </p>
                   </div>
                 </div>
@@ -322,36 +280,36 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Plan Features */}
-          <div className="bg-gradient-to-r from-black to-gray-800 rounded-lg p-6 text-white">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              Your {user?.selectedPlan || "Premium"} Plan Features
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">Unlimited job applications</span>
+          {/* Next Steps */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Bell className="w-6 h-6 text-blue-600" />
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">AI-powered job matching</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">Auto-apply feature</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">Priority support</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">Advanced filters</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-sm">Interview preparation</span>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  What happens next?
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  Our admin team will review your profile and begin automated
+                  job applications within 24-48 hours. You'll receive
+                  notifications here when applications are submitted and when
+                  employers respond.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Complete Profile
+                  </button>
+                  <button
+                    onClick={() => navigate("/settings")}
+                    className="bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    Set Preferences
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -360,52 +318,37 @@ const Dashboard = () => {
     );
   }
 
-  // Regular dashboard with stats
+  // Main dashboard for users with data
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user?.name}
+          </h1>
           <p className="text-gray-600">
-            Track your job search progress and manage applications
+            Here's your automated job application progress
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Total Applications
+                  Automated Applications
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.totalApplications || 0}
+                  {stats?.automatedApplications || 0}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats?.thisMonthApplications || 0} this month
+                <p className="text-xs text-green-600 mt-1">
+                  +{stats?.newApplicationsThisWeek || 0} this week
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Saved Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats?.savedJobs || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats?.newSavedJobs || 0} new this week
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-green-600" />
+                <Bot className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
@@ -414,17 +357,36 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Profile Views
+                  Employer Responses
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.profileViews || 0}
+                  {stats?.employerResponses || 0}
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {stats?.responseRate || 0}% response rate
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Profile Score
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats?.profileCompleteness || 85}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {stats?.profileViewsGrowth || 0}% increase
+                  Profile optimization
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
+                <Target className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
@@ -436,10 +398,10 @@ const Dashboard = () => {
                   Success Rate
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.successRate ? `${stats.successRate}%` : "-"}
+                  {stats?.successRate || 0}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Response to applications
+                  Application to response
                 </p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -449,12 +411,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Activity and Charts */}
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Applications */}
+          {/* Recent Automated Applications */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Recent Applications
+              Recent Automated Applications
             </h2>
             {stats?.recentApplications &&
             stats.recentApplications.length > 0 ? (
@@ -462,30 +424,31 @@ const Dashboard = () => {
                 {stats.recentApplications.map((application, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
                   >
-                    <div>
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
                       <h3 className="font-medium text-gray-900">
                         {application.jobTitle}
                       </h3>
                       <p className="text-sm text-gray-600">
                         {application.company}
                       </p>
-                    </div>
-                    <div className="text-right">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                           application.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : application.status === "approved"
+                            : application.status === "submitted"
                             ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {application.status}
                       </span>
                       <p className="text-xs text-gray-500 mt-1">
-                        {application.appliedAt}
+                        Applied {application.appliedAt}
                       </p>
                     </div>
                   </div>
@@ -493,52 +456,10 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No applications yet</p>
-                <button
-                  onClick={() => navigate("/jobs")}
-                  className="mt-2 text-black hover:underline text-sm"
-                >
-                  Start applying to jobs
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Application Status Chart or Upcoming Interviews */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Upcoming Interviews
-            </h2>
-            {stats?.upcomingInterviews &&
-            stats.upcomingInterviews.length > 0 ? (
-              <div className="space-y-4">
-                {stats.upcomingInterviews.map((interview, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <Calendar className="w-8 h-8 text-blue-600" />
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {interview.jobTitle}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {interview.company}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {interview.scheduledAt}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No upcoming interviews</p>
+                <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No automated applications yet</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Interviews will appear here once scheduled
+                  Our team will start applying soon
                 </p>
               </div>
             )}

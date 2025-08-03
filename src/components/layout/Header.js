@@ -42,7 +42,7 @@ const Header = ({ isAdmin = false }) => {
           />
 
           {/* Logo */}
-          <Link
+          {/* <Link
             to={isAdmin ? "/admin/dashboard" : "/dashboard"}
             className="flex items-center gap-2"
           >
@@ -52,7 +52,7 @@ const Header = ({ isAdmin = false }) => {
             <span className="font-bold text-xl text-gray-900 hidden sm:block">
               AutoApplyJob
             </span>
-          </Link>
+          </Link> */}
 
           {/* Search Bar - Desktop */}
           <div className="hidden md:block ml-8">
