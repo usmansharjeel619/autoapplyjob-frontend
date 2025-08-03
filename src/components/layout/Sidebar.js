@@ -12,6 +12,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  Wrench,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { useAuth } from "../../context/AuthContext";
@@ -33,6 +34,11 @@ const Sidebar = ({ isAdmin = false }) => {
       label: "Profile",
       icon: User,
       path: "/profile",
+    },
+    {
+      label: "AI Tools",
+      icon: Wrench,
+      path: "/tools",
     },
     {
       label: "Application Status",
