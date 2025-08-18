@@ -420,12 +420,34 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section with Background Image and Vertical Lines */}
       <section
         id="home"
-        className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800"
+        className="relative h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/hero-background.jpg')",
+          backgroundAttachment: "fixed", // Optional: creates parallax effect
+        }}
       >
-        <div className="absolute inset-0 bg-black opacity-60"></div>
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/60"></div>
+
+        {/* Vertical Lines Overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="container mx-auto h-full relative">
+            {/* Multiple vertical lines with different opacities and positions */}
+            <div className="absolute left-1/6 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute left-1/3 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+            <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+            <div className="absolute left-2/3 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute right-1/6 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+
+            {/* Additional decorative lines */}
+            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-white/8 to-transparent"></div>
+            <div className="absolute right-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-white/8 to-transparent"></div>
+          </div>
+        </div>
+
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
             Let Us Find Your
@@ -456,7 +478,7 @@ const LandingPage = () => {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  src="/images/about-us.png"
                   alt="Professional team"
                   className="w-full h-[600px] object-cover"
                 />
@@ -591,12 +613,31 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-      {/* Statistics Counter */}
-      <section className="py-16 bg-black text-white">
-        <div className="container mx-auto px-6">
+      {/* Statistics Counter with Background Image */}
+      <section
+        className="relative py-16 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/hero-background.jpg')",
+          backgroundAttachment: "fixed", // Optional: creates parallax effect
+        }}
+      >
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/70"></div>
+
+        {/* Vertical Lines Overlay (optional) */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="container mx-auto h-full relative">
+            {/* Subtle vertical lines */}
+            <div className="absolute left-1/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+            <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-3/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+          </div>
+        </div>
+
+        <div className="relative z-10 container mx-auto px-6">
           <div className="grid grid-cols-4 gap-4 md:gap-8">
             <div className="text-center">
-              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 text-white">
                 {counters.projects}
               </div>
               <p className="text-gray-300 text-sm md:text-lg">
@@ -604,7 +645,7 @@ const LandingPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 text-white">
                 {counters.designs}+
               </div>
               <p className="text-gray-300 text-sm md:text-lg">
@@ -612,7 +653,7 @@ const LandingPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 text-white">
                 {counters.awards}
               </div>
               <p className="text-gray-300 text-sm md:text-lg">
@@ -620,7 +661,7 @@ const LandingPage = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 text-white">
                 {counters.running}
               </div>
               <p className="text-gray-300 text-sm md:text-lg">Active Clients</p>
@@ -628,6 +669,7 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
       {/* Features Section */}
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-6">
@@ -708,39 +750,50 @@ const LandingPage = () => {
                     </span>
                   </div>
                 )}
-                <Card.Body className="p-8 text-center">
-                  <h3 className="text-2xl font-bold text-black mb-2">
-                    {plan.name}
-                  </h3>
-                  <p className="text-gray-600 mb-6">{plan.description}</p>
-                  <div className="mb-6">
+                <Card.Body className="p-8">
+                  {/* Plan name and description - left aligned */}
+                  <div className="text-left mb-6">
+                    <h3 className="text-2xl font-bold text-black mb-2">
+                      {plan.name}
+                    </h3>
+                    <p className="text-gray-600">{plan.description}</p>
+                  </div>
+
+                  {/* Price - center aligned */}
+                  <div className="text-center mb-6">
                     <span className="text-4xl font-bold text-black">
                       {plan.price}
                     </span>
                     <span className="text-gray-600">/{plan.period}</span>
                   </div>
-                  <ul className="space-y-3 mb-8">
+
+                  {/* Features list - left aligned */}
+                  <ul className="space-y-3 mb-8 text-left">
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3">
+                      <li key={idx} className="flex items-start gap-3">
                         <CheckCircle
-                          className="text-black flex-shrink-0"
+                          className="text-black flex-shrink-0 mt-0.5"
                           size={16}
                         />
                         <span className="text-gray-700">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    onClick={handleGetStarted}
-                    className={`w-full ${
-                      plan.popular
-                        ? "bg-black hover:bg-gray-800 text-white"
-                        : "border border-black text-black hover:bg-black hover:text-white"
-                    }`}
-                    variant={plan.popular ? "default" : "outline"}
-                  >
-                    Choose {plan.name}
-                  </Button>
+
+                  {/* Button - center aligned */}
+                  <div className="text-center">
+                    <Button
+                      onClick={handleGetStarted}
+                      className={`w-full ${
+                        plan.popular
+                          ? "bg-black hover:bg-gray-800 text-white"
+                          : "border border-black text-black hover:bg-black hover:text-white"
+                      }`}
+                      variant={plan.popular ? "default" : "outline"}
+                    >
+                      Choose {plan.name}
+                    </Button>
+                  </div>
                 </Card.Body>
               </Card>
             ))}
