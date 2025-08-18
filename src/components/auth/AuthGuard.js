@@ -31,7 +31,7 @@ const AuthGuard = ({
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     console.log("🛡️ AuthGuard - Not authenticated, redirecting to auth"); // Debug log
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   // Check admin access

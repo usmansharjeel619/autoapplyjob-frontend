@@ -90,11 +90,11 @@ const Select = forwardRef(
             })}
           </select>
 
-          {!multiple && (
+          {/* {!multiple && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
               <ChevronDown size={16} className="text-gray-400" />
             </div>
-          )}
+          )} */}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

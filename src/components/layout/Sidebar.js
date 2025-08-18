@@ -118,9 +118,6 @@ const Sidebar = ({ isAdmin = false }) => {
                 alt="AutoApplyJob"
                 className="w-40 h-40"
               />{" "}
-              <span className="font-bold text-xl text-gray-900">
-                {isAdmin ? "Admin" : "AutoApply"}
-              </span>
             </div>
           )}
 

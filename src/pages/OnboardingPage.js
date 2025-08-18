@@ -1,3 +1,4 @@
+// src/pages/OnboardingPage.js
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -50,16 +51,67 @@ const OnboardingPage = () => {
     },
   ];
 
-  // Load saved progress on mount - only run once
+  // Helper function to convert backend step to frontend step index
+  const getStepIndexFromBackendStep = (backendStep) => {
+    const stepMap = {
+      [ONBOARDING_STEPS.BASIC_INFO]: 0,
+      [ONBOARDING_STEPS.RESUME_UPLOAD]: 1,
+      [ONBOARDING_STEPS.JOB_PREFERENCES]: 2,
+      completed: 2, // If completed, show last step
+    };
+    return stepMap[backendStep] || 0; // Default to first step
+  };
+
+  //useeffect to check current step
   useEffect(() => {
-    if (!initializedRef.current && onboardingProgress) {
+    console.log("Current step:", currentStep);
+  }, [currentStep]);
+
+  // Initialize onboarding step based on user data and saved progress
+  useEffect(() => {
+    if (!initializedRef.current) {
       initializedRef.current = true;
-      setCurrentStep(onboardingProgress.currentStep || 0);
-      setStepData(
-        (prevStepData) => onboardingProgress.stepData || prevStepData
-      );
+
+      let initialStep = 0;
+
+      // First, check if user has already completed onboarding
+      if (user?.onboardingCompleted) {
+        navigate("/payment");
+        return;
+      }
+
+      // Then check user's backend step
+      if (user?.onboardingStep) {
+        initialStep = getStepIndexFromBackendStep(user.onboardingStep);
+      }
+
+      // Finally, check saved progress (but validate it)
+      if (onboardingProgress?.currentStep !== undefined) {
+        const savedStep = onboardingProgress.currentStep;
+        // Only use saved step if it's valid and not beyond current backend step
+        if (
+          savedStep >= 0 &&
+          savedStep < steps.length &&
+          savedStep >= initialStep
+        ) {
+          initialStep = savedStep;
+        }
+      }
+
+      // Ensure we never start beyond the available steps
+      initialStep = Math.min(initialStep, steps.length - 1);
+
+      setCurrentStep(initialStep);
+
+      // Load saved step data if available
+      if (onboardingProgress?.stepData) {
+        setStepData((prevStepData) => ({
+          ...prevStepData,
+          ...onboardingProgress.stepData,
+        }));
+      }
     }
-  }, [onboardingProgress]);
+  }, [user, onboardingProgress, navigate, steps.length]);
 
   // Memoized function to update step data to prevent infinite loops
   const updateStepData = useCallback(
@@ -103,7 +155,7 @@ const OnboardingPage = () => {
         isUpdatingProgressRef.current = false;
       }, 100);
     }
-  }, [currentStep, setOnboardingProgress]); // Include setOnboardingProgress for completeness
+  }, [currentStep, setOnboardingProgress]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -135,6 +187,15 @@ const OnboardingPage = () => {
     }
   };
 
+  // Prevent rendering if still initializing or if user should be redirected
+  if (!initializedRef.current || user?.onboardingCompleted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
   const progress = ((currentStep + 1) / steps.length) * 100;
   const currentStepConfig = steps[currentStep];
   const StepComponent = currentStepConfig.component;
@@ -149,7 +210,7 @@ const OnboardingPage = () => {
               src="images/logo.png"
               alt="AutoApplyJob"
               className="w-40 h-40"
-            />{" "}
+            />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 Welcome to AutoApplyJob

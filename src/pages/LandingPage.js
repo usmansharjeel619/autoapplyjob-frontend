@@ -596,7 +596,7 @@ const LandingPage = () => {
                 </div>
 
                 {/* Step number */}
-                <div className="inline-block bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mb-4">
+                <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold mb-4 mx-auto">
                   {step.number}
                 </div>
 
@@ -705,7 +705,7 @@ const LandingPage = () => {
               What You Get
             </h3>
             <p className="text-center text-gray-600 mb-8 text-lg">
-              ✨ All Plans Include:
+              All Plans Include:
             </p>
 
             <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
@@ -869,7 +869,7 @@ const LandingPage = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-black">Email</h4>
-                    <p className="text-gray-600">contact@autoapplyjob.com</p>
+                    <p className="text-gray-600">info@autoapplyjob.co</p>
                   </div>
                 </div>
 

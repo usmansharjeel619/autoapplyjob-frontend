@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const ProgressBar = ({
   value = 0,
@@ -26,11 +26,27 @@ const ProgressBar = ({
     info: "bg-blue-500",
   };
 
-  const containerClasses = ["progress-bar", sizeClasses[size], className]
+  // Container classes with proper background and styling
+  const containerClasses = [
+    "w-full",
+    "bg-gray-200", // Background for the container
+    "rounded-full", // Rounded container
+    "overflow-hidden", // Hide overflow
+    sizeClasses[size],
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 
-  const fillClasses = ["progress-fill", variantClasses[variant]]
+  // Fill classes with transition for smooth animation
+  const fillClasses = [
+    "h-full", // Fill the full height of container
+    "rounded-full", // Rounded fill
+    "transition-all", // Smooth transition
+    "duration-300", // Animation duration
+    "ease-out", // Easing
+    variantClasses[variant],
+  ]
     .filter(Boolean)
     .join(" ");
 
