@@ -1,26 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Zap,
-  Target,
-  Shield,
+  Play,
   CheckCircle,
   Star,
-  Users,
+  Shield,
+  Clock,
+  Target,
   TrendingUp,
-  Play,
-  Phone,
+  Users,
+  Award,
+  Briefcase,
   Mail,
+  Phone,
   MapPin,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
 const LandingPage = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -34,58 +40,118 @@ const LandingPage = () => {
     }
   };
 
+  // Navigation items
+  const navItems = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About Us" },
+    { id: "how-it-works", label: "How It Works" },
+    { id: "features", label: "Features" },
+    { id: "pricing", label: "Pricing" },
+    { id: "testimonials", label: "Testimonials" },
+    { id: "contact", label: "Contact" },
+  ];
+
+  // Scroll to section
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setActiveSection(sectionId);
+      setMobileMenuOpen(false);
+    }
+  };
+
+  // Update active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navItems.map((item) => item.id);
+      const scrollPosition = window.scrollY + 100;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const element = document.getElementById(sections[i]);
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Counter animation
+  const [counters, setCounters] = useState({
+    projects: 0,
+    designs: 0,
+    awards: 0,
+    running: 0,
+  });
+
+  useEffect(() => {
+    const finalValues = {
+      projects: 120,
+      designs: 210,
+      awards: 15,
+      running: 62,
+    };
+
+    const duration = 2000; // 2 seconds
+    const steps = 60; // Number of animation steps
+    const stepTime = duration / steps;
+
+    const animate = (key, finalValue) => {
+      let currentValue = 0;
+      const increment = finalValue / steps;
+
+      const interval = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= finalValue) {
+          currentValue = finalValue;
+          clearInterval(interval);
+        }
+        setCounters((prev) => ({
+          ...prev,
+          [key]: Math.floor(currentValue),
+        }));
+      }, stepTime);
+    };
+
+    // Start animations with delays
+    Object.entries(finalValues).forEach(([key, value], index) => {
+      setTimeout(() => animate(key, value), index * 200);
+    });
+  }, []);
+
   const features = [
     {
-      icon: <Zap className="text-gray-800" size={24} />,
-      title: "AI-Powered Profile Creation",
-      description:
-        "Our advanced AI creates and optimizes your professional profile to match the best opportunities in your field.",
+      icon: <Shield className="text-black mx-auto" size={48} />,
+      title: "Professional Quality",
+      description: "Expert recruiters handle your applications with care",
     },
     {
-      icon: <Target className="text-gray-800" size={24} />,
-      title: "Smart Job Matching",
+      icon: <Clock className="text-black mx-auto" size={48} />,
+      title: "Save Time",
       description:
-        "We analyze thousands of jobs and match you with the most relevant opportunities based on your skills and preferences.",
+        "Focus on preparing for interviews while we handle applications",
     },
     {
-      icon: <Shield className="text-gray-800" size={24} />,
-      title: "Expert Application Management",
+      icon: <Target className="text-black mx-auto" size={48} />,
+      title: "Targeted Matching",
       description:
-        "Our team manually applies to jobs on your behalf, ensuring professional and personalized applications every time.",
+        "AI-powered job matching based on your skills and preferences",
     },
   ];
 
   const whyChooseUs = [
-    "Professional job application management",
-    "AI-powered CV optimization and updates",
-    "Personal profile creation and maintenance",
-    "Expert job matching and selection",
-    "No need to search jobs yourself",
-    "Dedicated account management",
-  ];
-
-  const testimonials = [
-    {
-      name: "Ahmed Khan",
-      role: "Software Engineer",
-      content:
-        "AutoApplyJob helped me land my dream job at a top tech company. The AI CV updates were game-changing!",
-      rating: 5,
-    },
-    {
-      name: "Fatima Ali",
-      role: "Marketing Manager",
-      content:
-        "I saved weeks of job searching. The team applied to relevant positions while I focused on interview prep.",
-      rating: 5,
-    },
-    {
-      name: "Hassan Ahmed",
-      role: "Data Analyst",
-      content:
-        "The professional application management gave me confidence. Highly recommend their services!",
-      rating: 5,
-    },
+    "Professional application handling",
+    "AI-powered job matching",
+    "Dedicated account manager",
+    "Real-time application tracking",
+    "Interview preparation support",
+    "Custom cover letters for each job",
+    "LinkedIn profile optimization",
+    "Salary negotiation guidance",
   ];
 
   const plans = [
@@ -125,22 +191,65 @@ const LandingPage = () => {
     },
   ];
 
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Software Engineer",
+      content:
+        "AutoApplyJob helped me land my dream job at a Fortune 500 company. The process was seamless and professional.",
+      rating: 5,
+    },
+    {
+      name: "Michael Chen",
+      role: "Marketing Manager",
+      content:
+        "I was skeptical at first, but the results speak for themselves. Got 3 interview offers in the first month!",
+      rating: 5,
+    },
+    {
+      name: "Emily Davis",
+      role: "Data Analyst",
+      content:
+        "The team's expertise in crafting applications is outstanding. Highly recommend their services.",
+      rating: 5,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-white text-black">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-300">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-white">
+      {/* Navigation Header */}
+      <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
             <div className="flex items-center gap-2">
-              <img
-                src="/images/logo.png"
-                alt="AutoApplyJob Logo"
-                className="w-8 h-8"
-              />
-              <span className="font-bold text-xl text-black">AutoApplyJob</span>
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">AA</span>
+              </div>
+              <span className="font-bold text-xl text-gray-900">
+                AutoApplyJob
+              </span>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Desktop Navigation */}
+            <nav className="md:flex items-center gap-6">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`font-medium transition-colors text-sm lg:text-base ${
+                    activeSection === item.id
+                      ? "text-black border-b-2 border-black pb-1"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            {/* Action Buttons */}
+            <div className=" md:flex items-center gap-4">
               {!isAuthenticated ? (
                 <>
                   <Link
@@ -165,29 +274,84 @@ const LandingPage = () => {
                 </Button>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden"
+            />
           </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="lg:hidden bg-white border-t border-gray-200 py-4">
+              <nav className="flex flex-col gap-4">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className={`text-left font-medium ${
+                      activeSection === item.id ? "text-black" : "text-gray-600"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <div className="border-t border-gray-200 pt-4 flex flex-col gap-3">
+                  {!isAuthenticated ? (
+                    <>
+                      <Link
+                        to="/auth"
+                        className="text-gray-600 hover:text-black font-medium"
+                      >
+                        Sign In
+                      </Link>
+                      <Button
+                        onClick={handleGetStarted}
+                        className="bg-black hover:bg-gray-800 text-white w-full"
+                      >
+                        Get Started
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={handleGetStarted}
+                      className="bg-black hover:bg-gray-800 text-white w-full"
+                    >
+                      Dashboard
+                    </Button>
+                  )}
+                </div>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Hero Section with Full Screen Image */}
+      {/* Hero Section */}
       <section
-        className="relative h-screen flex items-center justify-center bg-cover bg-center"
-        style={{ backgroundImage: "url('/images/hero-background.jpg')" }}
+        id="home"
+        className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-800"
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
-          <h1 className="text-6xl md:text-7xl font-bold mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
             Let Us Find Your
-            <span className="block text-gray-300">Dream Job</span>
+            <span className="block text-gray-300 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              Dream Job
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-gray-300">
-            Sit back while our experts handle your job applications
-            professionally
+          <p className="text-xl md:text-2xl mb-8 text-gray-300 max-w-2xl mx-auto">
+            Sit back while our AI-powered experts handle your job applications
+            professionally and efficiently
           </p>
           <Button
             size="lg"
             onClick={handleGetStarted}
-            className="bg-white text-black hover:bg-gray-100 text-lg px-8 py-4"
+            className="bg-white text-black hover:bg-gray-100 text-lg px-8 py-4 transform hover:scale-105 transition-all duration-200"
           >
             Start Your Journey
             <ArrowRight className="ml-2" size={20} />
@@ -195,82 +359,273 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20 bg-gray-50">
+      {/* About Us Section */}
+      <section id="about" className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-black mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600">
-              Simple steps to your dream job
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-black mb-2">
-                    Create Your Profile
-                  </h3>
-                  <p className="text-gray-600">
-                    Upload your CV and fill out your preferences. Our AI will
-                    optimize everything.
-                  </p>
-                </div>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left side - Portrait Image */}
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                <img
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  alt="Professional team"
+                  className="w-full h-[600px] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
-
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-black mb-2">
-                    We Find Jobs
-                  </h3>
-                  <p className="text-gray-600">
-                    Our team searches and selects the best job opportunities
-                    that match your profile.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-black mb-2">
-                    We Apply For You
-                  </h3>
-                  <p className="text-gray-600">
-                    Our experts apply to jobs professionally on your behalf with
-                    personalized applications.
-                  </p>
+              {/* Floating card */}
+              <div className="absolute -bottom-6 -right-6 bg-white rounded-xl p-6 shadow-xl border border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                    <Award className="text-white" size={24} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xl text-black">98%</p>
+                    <p className="text-gray-600 text-sm">Success Rate</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="relative">
-              <div className="bg-black rounded-lg p-8 text-center">
-                <Play className="text-white mx-auto mb-4" size={64} />
-                <p className="text-white text-lg mb-4">Watch How It Works</p>
-                <Button
-                  variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-black"
-                >
-                  Play Video
-                </Button>
+            {/* Right side - Content */}
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+                About AutoApplyJob
+              </h2>
+              <p className="text-lg text-gray-600 mb-6">
+                We're a team of career experts and AI specialists dedicated to
+                revolutionizing the job search process. Our platform combines
+                cutting-edge technology with human expertise to deliver
+                personalized job application services that get results.
+              </p>
+              <p className="text-lg text-gray-600 mb-8">
+                Founded by former recruiters and tech professionals, we
+                understand both sides of the hiring process. This unique
+                perspective allows us to craft applications that stand out to
+                employers and land you interviews at top companies.
+              </p>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Users className="text-blue-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-black">Expert Team</h4>
+                    <p className="text-gray-600">
+                      Former recruiters and HR professionals
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Target className="text-green-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-black">
+                      AI-Powered Matching
+                    </h4>
+                    <p className="text-gray-600">
+                      Advanced algorithms for perfect job matches
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Shield className="text-purple-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-black">
+                      Quality Guarantee
+                    </h4>
+                    <p className="text-gray-600">
+                      Professional applications with proven results
+                    </p>
+                  </div>
+                </div>
               </div>
+
+              <Button
+                onClick={handleGetStarted}
+                size="lg"
+                className="bg-black hover:bg-gray-800 text-white px-8 py-4"
+              >
+                Get Started Today
+                <ArrowRight className="ml-2" size={20} />
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-20 bg-white">
+      {/* Statistics Counter */}
+      <section className="py-16 bg-black text-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-4 gap-4 md:gap-8">
+            <div className="text-center">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+                {counters.projects}
+              </div>
+              <p className="text-gray-300 text-sm md:text-lg">
+                Projects Completed
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+                {counters.designs}+
+              </div>
+              <p className="text-gray-300 text-sm md:text-lg">
+                Applications Sent
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+                {counters.awards}
+              </div>
+              <p className="text-gray-300 text-sm md:text-lg">
+                Industry Awards
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2">
+                {counters.running}
+              </div>
+              <p className="text-gray-300 text-sm md:text-lg">Active Clients</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced How It Works */}
+      <section
+        id="how-it-works"
+        className="py-20 bg-gradient-to-br from-gray-50 to-white"
+      >
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+              How It Works
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our streamlined process gets you from application to interview in
+              record time
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-16">
+            {/* Steps */}
+            <div className="space-y-8">
+              <div className="flex gap-6 group">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    1
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <h3 className="text-2xl font-bold text-black mb-3">
+                    Create Your Profile
+                  </h3>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    Upload your CV and complete your preferences. Our AI
+                    analyzes your skills, experience, and career goals to create
+                    a comprehensive profile that attracts the right
+                    opportunities.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6 group">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    2
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <h3 className="text-2xl font-bold text-black mb-3">
+                    AI Job Matching
+                  </h3>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    Our advanced algorithms scan thousands of job postings
+                    daily, identifying positions that perfectly match your
+                    skills, salary expectations, and career aspirations.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6 group">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    3
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <h3 className="text-2xl font-bold text-black mb-3">
+                    Expert Application
+                  </h3>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    Our team of former recruiters craft personalized
+                    applications with custom cover letters, optimized resumes,
+                    and compelling narratives that showcase your unique value.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6 group">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    4
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <h3 className="text-2xl font-bold text-black mb-3">
+                    Land Interviews
+                  </h3>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    Track your applications in real-time, receive interview
+                    coaching, and get ongoing support throughout your job search
+                    journey until you land your dream role.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Demo */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 text-center shadow-2xl">
+                <div className="relative mb-6">
+                  <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform duration-300 cursor-pointer">
+                    <Play className="text-white ml-2" size={40} />
+                  </div>
+                  <div className="absolute inset-0 rounded-full bg-white/5 animate-pulse"></div>
+                </div>
+                <h4 className="text-white text-2xl font-bold mb-4">
+                  See It In Action
+                </h4>
+                <p className="text-gray-300 text-lg mb-6">
+                  Watch how our AI-powered system transforms your job search
+                  experience
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-black transition-all duration-300"
+                  size="lg"
+                >
+                  Watch Demo Video
+                </Button>
+              </div>
+
+              {/* Floating elements */}
+              <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-500 rounded-full opacity-20 animate-bounce"></div>
+              <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-green-500 rounded-full opacity-30 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -281,14 +636,16 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="border-gray-200 hover:shadow-lg transition-shadow"
+                className="border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
               >
                 <Card.Body className="p-8 text-center">
-                  <div className="mb-4">{feature.icon}</div>
+                  <div className="mb-6 transform hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
+                  </div>
                   <h3 className="text-xl font-semibold text-black mb-4">
                     {feature.title}
                   </h3>
@@ -298,11 +655,11 @@ const LandingPage = () => {
             ))}
           </div>
 
-          <div className="mt-16">
+          <div className="bg-gray-50 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-black text-center mb-8">
               What You Get
             </h3>
-            <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
               {whyChooseUs.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <CheckCircle className="text-black flex-shrink-0" size={20} />
@@ -315,7 +672,7 @@ const LandingPage = () => {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 bg-gray-50">
+      <section id="pricing" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -331,12 +688,14 @@ const LandingPage = () => {
               <Card
                 key={index}
                 className={`relative ${
-                  plan.popular ? "border-black border-2" : "border-gray-200"
-                }`}
+                  plan.popular
+                    ? "border-black shadow-xl scale-105"
+                    : "border-gray-200 hover:shadow-lg"
+                } transition-all duration-300`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium">
                       Most Popular
                     </span>
                   </div>
@@ -345,24 +704,26 @@ const LandingPage = () => {
                   <h3 className="text-2xl font-bold text-black mb-2">
                     {plan.name}
                   </h3>
+                  <p className="text-gray-600 mb-6">{plan.description}</p>
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-black">
-                      Rs. {plan.price}
+                      {plan.price}
                     </span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-gray-600">/{plan.period}</span>
                   </div>
-                  <div className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3">
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-3">
                         <CheckCircle
                           className="text-black flex-shrink-0"
                           size={16}
                         />
                         <span className="text-gray-700">{feature}</span>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                   <Button
+                    onClick={handleGetStarted}
                     className={`w-full ${
                       plan.popular
                         ? "bg-black hover:bg-gray-800 text-white"
@@ -379,8 +740,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Client Feedback */}
-      <section className="py-20 bg-white">
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -393,7 +754,10 @@ const LandingPage = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-gray-200">
+              <Card
+                key={index}
+                className="border-gray-200 hover:shadow-lg transition-shadow"
+              >
                 <Card.Body className="p-8">
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -421,84 +785,126 @@ const LandingPage = () => {
       </section>
 
       {/* Contact Us */}
-      <section className="py-20 bg-gray-50">
+      <section id="contact" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">Contact Us</h2>
             <p className="text-xl text-gray-600">Get in touch with our team</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 max-w-6xl mx-auto">
             <div>
-              <h3 className="text-2xl font-bold text-black mb-8">
-                Send us a message
+              <h3 className="text-2xl font-bold text-black mb-6">
+                Get In Touch
               </h3>
-              <form className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="your@email.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Message
-                  </label>
-                  <textarea
-                    rows="5"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Your message"
-                  ></textarea>
-                </div>
-                <Button className="w-full bg-black hover:bg-gray-800 text-white">
-                  Send Message
-                </Button>
-              </form>
-            </div>
+              <p className="text-gray-600 mb-8">
+                Ready to transform your job search? Contact us today and let our
+                experts help you land your dream job.
+              </p>
 
-            <div>
-              <h3 className="text-2xl font-bold text-black mb-8">
-                Get in touch
-              </h3>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <Phone className="text-black" size={24} />
+                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                    <Mail className="text-white" size={24} />
+                  </div>
                   <div>
-                    <p className="font-medium text-black">Phone</p>
-                    <p className="text-gray-600">+92 300 1234567</p>
+                    <h4 className="font-semibold text-black">Email</h4>
+                    <p className="text-gray-600">contact@autoapplyjob.com</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-4">
-                  <Mail className="text-black" size={24} />
+                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                    <Phone className="text-white" size={24} />
+                  </div>
                   <div>
-                    <p className="font-medium text-black">Email</p>
-                    <p className="text-gray-600">info@autoapplyjob.com</p>
+                    <h4 className="font-semibold text-black">Phone</h4>
+                    <p className="text-gray-600">+1 (555) 123-4567</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-4">
-                  <MapPin className="text-black" size={24} />
+                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                    <MapPin className="text-white" size={24} />
+                  </div>
                   <div>
-                    <p className="font-medium text-black">Address</p>
+                    <h4 className="font-semibold text-black">Office</h4>
                     <p className="text-gray-600">
-                      Rawalpindi, Punjab, Pakistan
+                      123 Business Ave, Suite 100
+                      <br />
+                      New York, NY 10001
                     </p>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Contact Form */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <form className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="How can we help you?"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Tell us about your job search goals..."
+                  ></textarea>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-black hover:bg-gray-800 text-white py-3"
+                >
+                  Send Message
+                </Button>
+              </form>
             </div>
           </div>
         </div>
@@ -509,50 +915,86 @@ const LandingPage = () => {
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img
-                  src="/images/logo-white.png"
-                  alt="AutoApplyJob Logo"
-                  className="w-8 h-8"
-                />
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-black font-bold text-sm">AA</span>
+                </div>
                 <span className="font-bold text-xl">AutoApplyJob</span>
               </div>
               <p className="text-gray-400">
-                Professional job application management service helping you land
-                your dream job.
+                Revolutionizing job search with AI-powered automation and expert
+                human touch.
               </p>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <div className="space-y-2 text-gray-400">
-                <div>Features</div>
-                <div>Pricing</div>
-                <div>How it Works</div>
-              </div>
+              <h4 className="font-semibold mb-4">Services</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Job Application
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    CV Optimization
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Interview Coaching
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    LinkedIn Profile
+                  </a>
+                </li>
+              </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <div className="space-y-2 text-gray-400">
-                <div>Help Center</div>
-                <div>Contact</div>
-                <div>Privacy</div>
-              </div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <button
+                    onClick={() => scrollToSection("about")}
+                    className="hover:text-white transition-colors"
+                  >
+                    About Us
+                  </button>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Terms of Service
+                  </a>
+                </li>
+              </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <div className="space-y-2 text-gray-400">
-                <div>About</div>
-                <div>Blog</div>
-                <div>Careers</div>
-              </div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>contact@autoapplyjob.com</li>
+                <li>+1 (555) 123-4567</li>
+                <li>123 Business Ave, Suite 100</li>
+                <li>New York, NY 10001</li>
+              </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2025 AutoApplyJob. All rights reserved.</p>
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 AutoApplyJob. All rights reserved.</p>
           </div>
         </div>
       </footer>
