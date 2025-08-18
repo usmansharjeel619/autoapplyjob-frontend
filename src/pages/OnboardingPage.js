@@ -145,9 +145,11 @@ const OnboardingPage = () => {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">AA</span>
-            </div>
+            <img
+              src="images/logo.png"
+              alt="AutoApplyJob"
+              className="w-40 h-40"
+            />{" "}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 Welcome to AutoApplyJob

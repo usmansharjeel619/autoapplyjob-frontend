@@ -312,12 +312,11 @@ const LandingPage = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AA</span>
-              </div>
-              <span className="font-bold text-xl text-gray-900">
-                AutoApplyJob
-              </span>
+              <img
+                src="images/logo.png"
+                alt="AutoApplyJob"
+                className="w-40 h-40"
+              />{" "}
             </div>
 
             {/* Desktop Navigation */}
@@ -977,10 +976,11 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">AA</span>
-                </div>
-                <span className="font-bold text-xl">AutoApplyJob</span>
+                <img
+                  src="images/logo.png"
+                  alt="AutoApplyJob"
+                  className="w-40 h-40"
+                />{" "}
               </div>
               <p className="text-gray-400">
                 Revolutionizing job search with AI-powered automation and expert

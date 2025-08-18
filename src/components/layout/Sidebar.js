@@ -113,9 +113,11 @@ const Sidebar = ({ isAdmin = false }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AA</span>
-              </div>
+              <img
+                src="images/logo.png"
+                alt="AutoApplyJob"
+                className="w-40 h-40"
+              />{" "}
               <span className="font-bold text-xl text-gray-900">
                 {isAdmin ? "Admin" : "AutoApply"}
               </span>
@@ -124,9 +126,11 @@ const Sidebar = ({ isAdmin = false }) => {
 
           {!sidebarOpen && !isMobile && (
             <div className="flex items-center justify-center w-full">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AA</span>
-              </div>
+              <img
+                src="images/logo.png"
+                alt="AutoApplyJob"
+                className="w-40 h-40"
+              />{" "}
             </div>
           )}
 
