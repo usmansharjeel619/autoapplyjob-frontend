@@ -17,6 +17,10 @@ import {
   MapPin,
   Menu,
   X,
+  Upload,
+  Search,
+  Send,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
@@ -144,49 +148,48 @@ const LandingPage = () => {
   ];
 
   const whyChooseUs = [
-    "Professional application handling",
-    "AI-powered job matching",
-    "Dedicated account manager",
-    "Real-time application tracking",
-    "Interview preparation support",
-    "Custom cover letters for each job",
-    "LinkedIn profile optimization",
-    "Salary negotiation guidance",
+    "Unlimited job applications",
+    "Custom resume optimization",
+    "Real-time application tracker",
+    "Priority support",
   ];
 
   const plans = [
     {
-      name: "Plan A",
-      price: "3,250",
+      name: "Plan A: Accelerator",
+      price: "3,250 PKR",
       features: [
-        "Basic profile setup",
-        "10 job applications per month",
-        "AI CV updates",
-        "Email support",
+        "50 automated applications/month",
+        "1 resume optimization",
+        "Basic dashboard",
+        "Start in <5 minutes",
+        "Bank-level encryption",
+        "Quick query resolution",
       ],
     },
     {
-      name: "Plan B",
-      price: "4,250",
+      name: "Plan B: Professional",
+      price: "4,250 PKR",
       popular: true,
       features: [
-        "Advanced profile optimization",
-        "25 job applications per month",
-        "AI CV updates",
-        "Priority support",
-        "Interview preparation tips",
+        "100 applications/month",
+        "3 resume versions",
+        "Interview analytics",
+        "24-hour onboarding",
+        "Resume compatibility report",
+        "Avg. interviews/month",
       ],
     },
     {
-      name: "Plan C",
-      price: "10,450",
+      name: "Plan C: Executive",
+      price: "10,450 PKR",
       features: [
-        "Premium profile management",
-        "Unlimited job applications",
-        "AI CV updates",
-        "Dedicated account manager",
-        "Interview preparation",
-        "Salary negotiation support",
+        "500 applications/month",
+        "Premium ATS resume builder",
+        "Dedicated career advisor",
+        "Advisor reviews top 5 applications",
+        "Industry-specific hiring insights",
+        "Freeze/cancel anytime",
       ],
     },
   ];
@@ -212,6 +215,92 @@ const LandingPage = () => {
       content:
         "The team's expertise in crafting applications is outstanding. Highly recommend their services.",
       rating: 5,
+    },
+  ];
+  const howItWorksSteps = [
+    {
+      number: "01",
+      title: "Upload & Customize",
+      description:
+        "Share your resume/CV and career preferences. Our system analyzes your strengths and target roles.",
+      icon: (
+        <svg
+          className="w-12 h-12 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
+        </svg>
+      ),
+    },
+    {
+      number: "02",
+      title: "AI-Driven Matching",
+      description:
+        "We scan 20+ job boards and company portals, matching you with opportunities aligned with your profile.",
+      icon: (
+        <svg
+          className="w-12 h-12 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      number: "03",
+      title: "Smart Application Engine",
+      description:
+        "Automatically submits tailored applications—optimized resumes, keyword-rich cover letters, and one-click submissions.",
+      icon: (
+        <svg
+          className="w-12 h-12 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+          />
+        </svg>
+      ),
+    },
+    {
+      number: "04",
+      title: "Interview Pipeline",
+      description:
+        "Track applications and interview invites through your dashboard. Get real-time status updates.",
+      icon: (
+        <svg
+          className="w-12 h-12 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      ),
     },
   ];
 
@@ -390,19 +479,17 @@ const LandingPage = () => {
             {/* Right side - Content */}
             <div>
               <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
-                About AutoApplyJob
+                About Us
               </h2>
               <p className="text-lg text-gray-600 mb-6">
-                We're a team of career experts and AI specialists dedicated to
-                revolutionizing the job search process. Our platform combines
-                cutting-edge technology with human expertise to deliver
-                personalized job application services that get results.
+                Revolutionizing Job Search with AI-Powered Precision.
               </p>
               <p className="text-lg text-gray-600 mb-8">
-                Founded by former recruiters and tech professionals, we
-                understand both sides of the hiring process. This unique
-                perspective allows us to craft applications that stand out to
-                employers and land you interviews at top companies.
+                We're a tech-driven career accelerator dedicated to landing you
+                interviews. Our AI platform automates job applications while
+                maintaining a personalized touch, ensuring your profile stands
+                out in crowded job markets. No manual legwork—just strategic,
+                data-backed outreach designed for today's competitive landscape.
               </p>
 
               <div className="space-y-4 mb-8">
@@ -460,6 +547,50 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Enhanced How It Works */}
+      <section
+        id="how-it-works"
+        className="py-20 bg-gradient-to-br from-gray-50 to-white"
+      >
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
+              How It Works
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our streamlined process gets you from application to interview in
+              record time
+            </p>
+          </div>
+
+          {/* Steps in a row */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {howItWorksSteps.map((step, index) => (
+              <div key={index} className="text-center group">
+                {/* Icon with gradient background */}
+                <div
+                  className={`w-20 h-20 bg-gradient-to-br ${step.color} text-white rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300 mx-auto mb-6`}
+                >
+                  {step.icon}
+                </div>
+
+                {/* Step number */}
+                <div className="inline-block bg-black text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mb-4">
+                  {step.number}
+                </div>
+
+                {/* Content */}
+                <h3 className="text-xl font-bold text-black mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* Statistics Counter */}
       <section className="py-16 bg-black text-white">
         <div className="container mx-auto px-6">
@@ -497,133 +628,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Enhanced How It Works */}
-      <section
-        id="how-it-works"
-        className="py-20 bg-gradient-to-br from-gray-50 to-white"
-      >
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-black mb-6">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our streamlined process gets you from application to interview in
-              record time
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-16">
-            {/* Steps */}
-            <div className="space-y-8">
-              <div className="flex gap-6 group">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    1
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <h3 className="text-2xl font-bold text-black mb-3">
-                    Create Your Profile
-                  </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Upload your CV and complete your preferences. Our AI
-                    analyzes your skills, experience, and career goals to create
-                    a comprehensive profile that attracts the right
-                    opportunities.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 group">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    2
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <h3 className="text-2xl font-bold text-black mb-3">
-                    AI Job Matching
-                  </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Our advanced algorithms scan thousands of job postings
-                    daily, identifying positions that perfectly match your
-                    skills, salary expectations, and career aspirations.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 group">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    3
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <h3 className="text-2xl font-bold text-black mb-3">
-                    Expert Application
-                  </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Our team of former recruiters craft personalized
-                    applications with custom cover letters, optimized resumes,
-                    and compelling narratives that showcase your unique value.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-6 group">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    4
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <h3 className="text-2xl font-bold text-black mb-3">
-                    Land Interviews
-                  </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    Track your applications in real-time, receive interview
-                    coaching, and get ongoing support throughout your job search
-                    journey until you land your dream role.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Interactive Demo */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 text-center shadow-2xl">
-                <div className="relative mb-6">
-                  <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 hover:scale-110 transition-transform duration-300 cursor-pointer">
-                    <Play className="text-white ml-2" size={40} />
-                  </div>
-                  <div className="absolute inset-0 rounded-full bg-white/5 animate-pulse"></div>
-                </div>
-                <h4 className="text-white text-2xl font-bold mb-4">
-                  See It In Action
-                </h4>
-                <p className="text-gray-300 text-lg mb-6">
-                  Watch how our AI-powered system transforms your job search
-                  experience
-                </p>
-                <Button
-                  variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-black transition-all duration-300"
-                  size="lg"
-                >
-                  Watch Demo Video
-                </Button>
-              </div>
-
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-16 h-16 bg-blue-500 rounded-full opacity-20 animate-bounce"></div>
-              <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-green-500 rounded-full opacity-30 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-6">
@@ -659,11 +663,15 @@ const LandingPage = () => {
             <h3 className="text-2xl font-bold text-black text-center mb-8">
               What You Get
             </h3>
+            <p className="text-center text-gray-600 mb-8 text-lg">
+              ✨ All Plans Include:
+            </p>
+
             <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
               {whyChooseUs.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <CheckCircle className="text-black flex-shrink-0" size={20} />
-                  <span className="text-gray-700">{benefit}</span>
+                  <span className="text-gray-700 font-medium">• {benefit}</span>
                 </div>
               ))}
             </div>
