@@ -40,27 +40,8 @@ const AuthGuard = ({
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Check email verification (skip for admin users and email verification page)
-  if (
-    requireEmailVerification &&
-    !adminOnly &&
-    user &&
-    !user.isEmailVerified &&
-    location.pathname !== "/verify-email"
-  ) {
-    console.log(
-      "🛡️ AuthGuard - Email not verified, redirecting to verify-email"
-    ); // Debug log
-    // ✅ Preserve the current location's search params when redirecting
-    const verifyEmailPath =
-      location.pathname === "/verify-email"
-        ? location.pathname + location.search
-        : "/verify-email";
-    return <Navigate to={verifyEmailPath} replace />;
-  }
-
   // ✅ IMPORTANT: If we're already on verify-email page, don't redirect again!
-  if (location.pathname === "/verify-email" && user && !user.isEmailVerified) {
+  if (location.pathname === "/verify-email") {
     console.log(
       "🛡️ AuthGuard - On verify-email page, allowing access with params:",
       location.search
@@ -68,13 +49,22 @@ const AuthGuard = ({
     return children;
   }
 
-  // Check if user needs to complete onboarding
+  // Check email verification (skip for admin users)
+  if (requireEmailVerification && !adminOnly && user && !user.isEmailVerified) {
+    console.log(
+      "🛡️ AuthGuard - Email not verified, redirecting to verify-email"
+    ); // Debug log
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  // ✅ FIX: Only check onboarding if we're NOT on the payment page
+  // This prevents redirecting from payment back to onboarding
   if (
     !adminOnly &&
     user?.isEmailVerified &&
     !user?.onboardingCompleted &&
     location.pathname !== "/onboarding" &&
-    location.pathname !== "/verify-email"
+    location.pathname !== "/payment" // ✅ Add this condition
   ) {
     console.log(
       "🛡️ AuthGuard - Onboarding not complete, redirecting to onboarding"
