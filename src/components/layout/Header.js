@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Menu,
-  X,
-  Bell,
   Search,
+  Bell,
   User,
   Settings,
   LogOut,
@@ -29,8 +28,12 @@ const Header = ({ isAdmin = false }) => {
   const unreadNotifications = notifications.filter((n) => !n.read);
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 px-6 py-2">
+      {" "}
+      {/* Reduced padding from py-4 to py-2 */}
+      <div className="flex items-center justify-between h-12">
+        {" "}
+        {/* Fixed height */}
         {/* Left side */}
         <div className="flex items-center gap-4">
           <Button
@@ -63,12 +66,11 @@ const Header = ({ isAdmin = false }) => {
               <input
                 type="text"
                 placeholder="Search jobs, companies..."
-                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
         </div>
-
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Search Button - Mobile */}
@@ -211,7 +213,6 @@ const Header = ({ isAdmin = false }) => {
           </div>
         </div>
       </div>
-
       {/* Mobile Search Bar */}
       <div className="md:hidden mt-4">
         <div className="relative">
@@ -226,7 +227,6 @@ const Header = ({ isAdmin = false }) => {
           />
         </div>
       </div>
-
       {/* Click outside to close dropdowns */}
       {(showUserMenu || showNotifications) && (
         <div
