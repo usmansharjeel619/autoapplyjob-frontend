@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, X, MapPin, DollarSign } from "lucide-react";
-import { INDUSTRIES, JOB_TYPES, WORK_TYPES } from "../../utils/constants";
+import { MapPin } from "lucide-react";
+import {
+  INDUSTRIES,
+  JOB_TYPES,
+  WORK_TYPES,
+  JOB_TITLES,
+  LOCATIONS,
+} from "../../utils/constants";
 import { jobPreferencesValidation } from "../../utils/validation";
 import { useApp } from "../../context/AppContext";
 import Button from "../ui/Button";
-import Input from "../ui/Input";
 import Select from "../ui/Select";
+import AutoComplete from "../ui/AutoComplete";
 import Card from "../ui/Card";
 
 const JobPreferences = ({
@@ -23,10 +29,7 @@ const JobPreferences = ({
     workTypes: [],
     location: "",
     remoteOk: false,
-    minSalary: "",
-    maxSalary: "",
-    targetCompanies: [],
-    avoidCompanies: [],
+
     ...data,
   });
   const [errors, setErrors] = useState({});
@@ -134,13 +137,16 @@ const JobPreferences = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Job Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Input
+        {/* Job Title with AutoComplete */}
+        <AutoComplete
           label="Desired Job Title"
           placeholder="e.g., Software Engineer"
           value={formData.desiredJobTitle}
-          onChange={(e) => handleInputChange("desiredJobTitle", e.target.value)}
+          onChange={(value) => handleInputChange("desiredJobTitle", value)}
+          options={JOB_TITLES}
           error={errors.desiredJobTitle}
           required
+          maxSuggestions={10}
         />
 
         <Select
@@ -153,11 +159,27 @@ const JobPreferences = ({
         />
       </div>
 
+      {/* Location with Predefined Options */}
+      <div className="grid grid-cols-1 gap-6">
+        <Select
+          label="Preferred Location"
+          value={formData.location}
+          onChange={(value) => handleInputChange("location", value)}
+          error={errors.location}
+          required
+          options={[
+            { value: "", label: "Select preferred location" },
+            ...LOCATIONS,
+          ]}
+          icon={<MapPin size={16} />}
+        />
+      </div>
+
       {/* Job & Work Types */}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Job Types (Select all that apply)
+            Job Types (Select all that apply) *
           </label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {JOB_TYPES.map((type) => (
@@ -182,7 +204,7 @@ const JobPreferences = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Work Arrangement (Select all that apply)
+            Work Arrangement (Select all that apply) *
           </label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {WORK_TYPES.map((type) => (
@@ -204,35 +226,6 @@ const JobPreferences = ({
             <p className="mt-1 text-sm text-red-600">{errors.workTypes}</p>
           )}
         </div>
-      </div>
-
-      {/* Location & Salary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Input
-          label="Preferred Location"
-          placeholder="e.g., New York, NY"
-          value={formData.location}
-          onChange={(e) => handleInputChange("location", e.target.value)}
-          icon={<MapPin size={16} />}
-        />
-
-        <Input
-          label="Minimum Salary"
-          type="number"
-          placeholder="50000"
-          value={formData.minSalary}
-          onChange={(e) => handleInputChange("minSalary", e.target.value)}
-          icon={<DollarSign size={16} />}
-        />
-
-        <Input
-          label="Maximum Salary"
-          type="number"
-          placeholder="120000"
-          value={formData.maxSalary}
-          onChange={(e) => handleInputChange("maxSalary", e.target.value)}
-          icon={<DollarSign size={16} />}
-        />
       </div>
 
       {/* Remote Work Preference */}

@@ -287,6 +287,257 @@ export const COMMON_SKILLS = [
   "Creativity",
 ];
 
+// Common Job Titles for suggestions
+export const JOB_TITLES = [
+  // Technology
+  "Software Engineer",
+  "Frontend Developer",
+  "Backend Developer",
+  "Full Stack Developer",
+  "Mobile App Developer",
+  "DevOps Engineer",
+  "Data Scientist",
+  "Data Analyst",
+  "Machine Learning Engineer",
+  "AI Engineer",
+  "Cloud Engineer",
+  "Cybersecurity Specialist",
+  "Database Administrator",
+  "System Administrator",
+  "Network Engineer",
+  "Product Manager",
+  "Technical Product Manager",
+  "QA Engineer",
+  "Test Automation Engineer",
+  "UI/UX Designer",
+  "Web Designer",
+  "Graphic Designer",
+  "Technical Writer",
+  "Solutions Architect",
+  "Engineering Manager",
+  "Tech Lead",
+  "Senior Software Engineer",
+  "Junior Developer",
+  "Intern Developer",
+
+  // Business & Management
+  "Business Analyst",
+  "Project Manager",
+  "Scrum Master",
+  "Operations Manager",
+  "General Manager",
+  "Account Manager",
+  "Sales Manager",
+  "Marketing Manager",
+  "Digital Marketing Specialist",
+  "Content Marketing Manager",
+  "Social Media Manager",
+  "SEO Specialist",
+  "Growth Hacker",
+  "Customer Success Manager",
+  "HR Manager",
+  "Recruiter",
+  "Training Specialist",
+  "Business Development Manager",
+  "Strategy Consultant",
+  "Management Consultant",
+
+  // Finance & Accounting
+  "Financial Analyst",
+  "Accountant",
+  "Senior Accountant",
+  "Bookkeeper",
+  "Tax Specialist",
+  "Auditor",
+  "Investment Analyst",
+  "Risk Analyst",
+  "Credit Analyst",
+  "Treasury Analyst",
+  "Controller",
+  "CFO",
+  "Finance Manager",
+
+  // Healthcare
+  "Registered Nurse",
+  "Physician",
+  "Medical Assistant",
+  "Physical Therapist",
+  "Pharmacist",
+  "Medical Technician",
+  "Healthcare Administrator",
+  "Dentist",
+  "Veterinarian",
+
+  // Education
+  "Teacher",
+  "Professor",
+  "Teaching Assistant",
+  "Curriculum Developer",
+  "Education Coordinator",
+  "School Administrator",
+  "Librarian",
+  "Research Assistant",
+
+  // Sales & Customer Service
+  "Sales Representative",
+  "Account Executive",
+  "Business Development Representative",
+  "Customer Service Representative",
+  "Call Center Agent",
+  "Technical Support Specialist",
+  "Sales Engineer",
+
+  // Creative & Design
+  "Graphic Designer",
+  "Web Designer",
+  "UI Designer",
+  "UX Designer",
+  "Creative Director",
+  "Art Director",
+  "Copywriter",
+  "Content Creator",
+  "Video Editor",
+  "Photographer",
+  "Interior Designer",
+
+  // Manufacturing & Operations
+  "Production Manager",
+  "Quality Control Inspector",
+  "Manufacturing Engineer",
+  "Supply Chain Manager",
+  "Logistics Coordinator",
+  "Warehouse Manager",
+  "Maintenance Technician",
+
+  // Legal
+  "Lawyer",
+  "Paralegal",
+  "Legal Assistant",
+  "Contract Manager",
+  "Compliance Officer",
+
+  // Other
+  "Administrative Assistant",
+  "Executive Assistant",
+  "Office Manager",
+  "Receptionist",
+  "Security Guard",
+  "Driver",
+  "Chef",
+  "Server",
+  "Retail Associate",
+  "Store Manager",
+];
+
+// Predefined Locations (Major cities worldwide)
+export const LOCATIONS = [
+  // United States
+  { value: "new-york-ny-usa", label: "New York, NY, USA" },
+  { value: "los-angeles-ca-usa", label: "Los Angeles, CA, USA" },
+  { value: "chicago-il-usa", label: "Chicago, IL, USA" },
+  { value: "houston-tx-usa", label: "Houston, TX, USA" },
+  { value: "phoenix-az-usa", label: "Phoenix, AZ, USA" },
+  { value: "philadelphia-pa-usa", label: "Philadelphia, PA, USA" },
+  { value: "san-antonio-tx-usa", label: "San Antonio, TX, USA" },
+  { value: "san-diego-ca-usa", label: "San Diego, CA, USA" },
+  { value: "dallas-tx-usa", label: "Dallas, TX, USA" },
+  { value: "san-jose-ca-usa", label: "San Jose, CA, USA" },
+  { value: "austin-tx-usa", label: "Austin, TX, USA" },
+  { value: "jacksonville-fl-usa", label: "Jacksonville, FL, USA" },
+  { value: "san-francisco-ca-usa", label: "San Francisco, CA, USA" },
+  { value: "indianapolis-in-usa", label: "Indianapolis, IN, USA" },
+  { value: "columbus-oh-usa", label: "Columbus, OH, USA" },
+  { value: "fort-worth-tx-usa", label: "Fort Worth, TX, USA" },
+  { value: "charlotte-nc-usa", label: "Charlotte, NC, USA" },
+  { value: "seattle-wa-usa", label: "Seattle, WA, USA" },
+  { value: "denver-co-usa", label: "Denver, CO, USA" },
+  { value: "boston-ma-usa", label: "Boston, MA, USA" },
+
+  // Canada
+  { value: "toronto-on-canada", label: "Toronto, ON, Canada" },
+  { value: "vancouver-bc-canada", label: "Vancouver, BC, Canada" },
+  { value: "montreal-qc-canada", label: "Montreal, QC, Canada" },
+  { value: "calgary-ab-canada", label: "Calgary, AB, Canada" },
+  { value: "ottawa-on-canada", label: "Ottawa, ON, Canada" },
+  { value: "edmonton-ab-canada", label: "Edmonton, AB, Canada" },
+
+  // United Kingdom
+  { value: "london-uk", label: "London, UK" },
+  { value: "manchester-uk", label: "Manchester, UK" },
+  { value: "birmingham-uk", label: "Birmingham, UK" },
+  { value: "glasgow-uk", label: "Glasgow, UK" },
+  { value: "liverpool-uk", label: "Liverpool, UK" },
+  { value: "edinburgh-uk", label: "Edinburgh, UK" },
+
+  // Australia
+  { value: "sydney-australia", label: "Sydney, Australia" },
+  { value: "melbourne-australia", label: "Melbourne, Australia" },
+  { value: "brisbane-australia", label: "Brisbane, Australia" },
+  { value: "perth-australia", label: "Perth, Australia" },
+  { value: "adelaide-australia", label: "Adelaide, Australia" },
+
+  // Germany
+  { value: "berlin-germany", label: "Berlin, Germany" },
+  { value: "munich-germany", label: "Munich, Germany" },
+  { value: "hamburg-germany", label: "Hamburg, Germany" },
+  { value: "cologne-germany", label: "Cologne, Germany" },
+  { value: "frankfurt-germany", label: "Frankfurt, Germany" },
+
+  // France
+  { value: "paris-france", label: "Paris, France" },
+  { value: "lyon-france", label: "Lyon, France" },
+  { value: "marseille-france", label: "Marseille, France" },
+  { value: "toulouse-france", label: "Toulouse, France" },
+
+  // Netherlands
+  { value: "amsterdam-netherlands", label: "Amsterdam, Netherlands" },
+  { value: "rotterdam-netherlands", label: "Rotterdam, Netherlands" },
+  { value: "the-hague-netherlands", label: "The Hague, Netherlands" },
+
+  // India
+  { value: "mumbai-india", label: "Mumbai, India" },
+  { value: "delhi-india", label: "Delhi, India" },
+  { value: "bangalore-india", label: "Bangalore, India" },
+  { value: "hyderabad-india", label: "Hyderabad, India" },
+  { value: "chennai-india", label: "Chennai, India" },
+  { value: "kolkata-india", label: "Kolkata, India" },
+  { value: "pune-india", label: "Pune, India" },
+
+  // Pakistan
+  { value: "karachi-pakistan", label: "Karachi, Pakistan" },
+  { value: "lahore-pakistan", label: "Lahore, Pakistan" },
+  { value: "islamabad-pakistan", label: "Islamabad, Pakistan" },
+  { value: "rawalpindi-pakistan", label: "Rawalpindi, Pakistan" },
+  { value: "faisalabad-pakistan", label: "Faisalabad, Pakistan" },
+
+  // Japan
+  { value: "tokyo-japan", label: "Tokyo, Japan" },
+  { value: "osaka-japan", label: "Osaka, Japan" },
+  { value: "kyoto-japan", label: "Kyoto, Japan" },
+  { value: "yokohama-japan", label: "Yokohama, Japan" },
+
+  // Singapore
+  { value: "singapore", label: "Singapore" },
+
+  // UAE
+  { value: "dubai-uae", label: "Dubai, UAE" },
+  { value: "abu-dhabi-uae", label: "Abu Dhabi, UAE" },
+
+  // Brazil
+  { value: "sao-paulo-brazil", label: "São Paulo, Brazil" },
+  { value: "rio-de-janeiro-brazil", label: "Rio de Janeiro, Brazil" },
+
+  // Mexico
+  { value: "mexico-city-mexico", label: "Mexico City, Mexico" },
+  { value: "guadalajara-mexico", label: "Guadalajara, Mexico" },
+
+  // Special options
+  { value: "remote-worldwide", label: "Remote - Worldwide" },
+  { value: "remote-usa", label: "Remote - USA" },
+  { value: "remote-europe", label: "Remote - Europe" },
+  { value: "remote-asia", label: "Remote - Asia" },
+];
+
 // Themes
 export const THEMES = {
   LIGHT: "light",

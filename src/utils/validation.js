@@ -273,25 +273,37 @@ export const basicInfoValidation = new ValidationSchema()
   .field("educationLevel")
   .required();
 
-export const jobPreferencesValidation = new ValidationSchema()
-  .field("desiredJobTitle")
-  .required()
-  .maxLength(100)
-  .field("industry")
-  .required()
-  .field("jobTypes")
-  .required()
-  .field("workTypes")
-  .required()
-  .field("minSalary")
-  .numeric()
-  .min(0)
-  .field("maxSalary")
-  .numeric()
-  .custom(
-    (value, data) => !data.minSalary || Number(value) >= Number(data.minSalary),
-    "Max salary must be greater than min salary"
-  );
+export const jobPreferencesValidation = {
+  validate: (data) => {
+    const errors = {};
+
+    // Required fields
+    if (!data.desiredJobTitle?.trim()) {
+      errors.desiredJobTitle = "Job title is required";
+    }
+
+    if (!data.industry?.trim()) {
+      errors.industry = "Industry is required";
+    }
+
+    if (!data.location?.trim()) {
+      errors.location = "Location is required";
+    }
+
+    if (!data.jobTypes || data.jobTypes.length === 0) {
+      errors.jobTypes = "Please select at least one job type";
+    }
+
+    if (!data.workTypes || data.workTypes.length === 0) {
+      errors.workTypes = "Please select at least one work arrangement";
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors,
+    };
+  },
+};
 
 export const skillsValidation = new ValidationSchema()
   .field("primarySkills")
