@@ -23,6 +23,7 @@ import AdminApplications from "./pages/admin/Applications";
 import AdminAnalytics from "./pages/admin/Analytics";
 import Layout from "./components/layout/Layout";
 import PaymentPage from "./pages/PaymentPage";
+import AuthDebugger from "./components/debug/AuthDebugger";
 
 import "./App.css";
 
@@ -161,6 +162,9 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
+            {/* Add debug component */}
+            <AuthDebugger />
           </div>
         </AppProvider>
       </AuthProvider>

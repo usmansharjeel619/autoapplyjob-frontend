@@ -1,5 +1,5 @@
 // src/context/AuthContext.js
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useReducer } from "react";
 import authService from "../services/auth.service";
 import userService from "../services/user.service";
 import { STORAGE_KEYS } from "../utils/constants";
@@ -11,99 +11,98 @@ import {
 
 const AuthContext = createContext();
 
+const initialState = {
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
+};
+
 const authReducer = (state, action) => {
   switch (action.type) {
-    case "LOGIN_START":
-      return { ...state, loading: true, error: null };
-
-    case "LOGIN_SUCCESS":
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: true,
-        user: action.payload.user,
-        token: action.payload.token,
-        error: null,
-      };
-
-    case "LOGIN_FAILURE":
-      return {
-        ...state,
-        loading: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        error: action.payload,
-      };
-
-    case "LOGOUT":
-      return {
-        ...state,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        loading: false,
-        error: null,
-      };
-
-    case "UPDATE_USER":
-      return {
-        ...state,
-        user: { ...state.user, ...action.payload },
-      };
-
     case "SET_LOADING":
-      return { ...state, loading: action.payload };
-
+      return { ...state, isLoading: action.payload };
+    case "SET_USER":
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: !!action.payload,
+        isLoading: false,
+        error: null,
+      };
+    case "SET_ERROR":
+      return { ...state, error: action.payload, isLoading: false };
+    case "LOGOUT":
+      return { ...initialState, isLoading: false };
+    case "UPDATE_USER":
+      return { ...state, user: { ...state.user, ...action.payload } };
     default:
       return state;
   }
 };
 
-const initialState = {
-  isAuthenticated: false,
-  user: null,
-  token: null,
-  loading: true,
-  error: null,
-};
-
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Initialize auth state from storage
+  // Initialize authentication state
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = getStorageItem(STORAGE_KEYS.AUTH_TOKEN);
-      const userData = getStorageItem(STORAGE_KEYS.USER_DATA);
+      console.log("🔄 AuthProvider - Initializing authentication...");
 
-      if (token && userData) {
-        try {
-          // Verify token is still valid
-          const isValid = await authService.verifyToken(token);
+      try {
+        const token = getStorageItem(STORAGE_KEYS.AUTH_TOKEN);
+        console.log("🔑 AuthProvider - Token found:", !!token);
 
-          if (isValid) {
-            // Get fresh user data
-            const freshUserData = await userService.getProfile();
-            console.log("AuthContext - Fresh user data:", freshUserData); // Debug log
-            dispatch({
-              type: "LOGIN_SUCCESS",
-              payload: {
-                user: freshUserData?.user,
-                token,
-              },
-            });
-          } else {
-            // Token expired, clear storage
-            clearAuthData();
-          }
-        } catch (error) {
-          console.error("Auth initialization error:", error);
+        if (!token) {
+          console.log(
+            "❌ AuthProvider - No token found, user not authenticated"
+          );
+          dispatch({ type: "SET_LOADING", payload: false });
+          return;
+        }
+
+        // Verify token and get user data
+        console.log("🔍 AuthProvider - Verifying token...");
+        const isValidToken = await authService.verifyToken(token);
+
+        if (!isValidToken) {
+          console.log("❌ AuthProvider - Token invalid, clearing auth data");
+          clearAuthData();
+          dispatch({ type: "LOGOUT" });
+          return;
+        }
+
+        console.log("✅ AuthProvider - Token valid, fetching user profile...");
+
+        // Fetch fresh user data from server
+        const userResponse = await userService.getProfile();
+        const userData = userResponse.data.user;
+
+        console.log("👤 AuthProvider - User data loaded:", {
+          id: userData._id,
+          email: userData.email,
+          isEmailVerified: userData.isEmailVerified,
+          onboardingCompleted: userData.onboardingCompleted,
+          userType: userData.userType,
+        });
+
+        // Save user data to localStorage
+        setStorageItem(STORAGE_KEYS.USER_DATA, userData);
+
+        // Update context state
+        dispatch({ type: "SET_USER", payload: userData });
+      } catch (error) {
+        console.error("❌ AuthProvider - Initialization failed:", error);
+
+        // If we get a 401, clear everything
+        if (error.response?.status === 401) {
+          console.log("🔄 AuthProvider - 401 error, clearing auth data");
           clearAuthData();
         }
-      }
 
-      dispatch({ type: "SET_LOADING", payload: false });
+        dispatch({ type: "SET_ERROR", payload: error.message });
+        dispatch({ type: "LOGOUT" });
+      }
     };
 
     initializeAuth();
@@ -113,110 +112,148 @@ export const AuthProvider = ({ children }) => {
     removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
     removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
     removeStorageItem(STORAGE_KEYS.USER_DATA);
-    dispatch({ type: "LOGOUT" });
   };
 
   const login = async (credentials) => {
-    dispatch({ type: "LOGIN_START" });
-
     try {
-      console.log("AuthContext - Attempting login with:", credentials.email); // Debug log
+      dispatch({ type: "SET_LOADING", payload: true });
+      console.log("🔐 AuthProvider - Attempting login...");
+
       const response = await authService.login(credentials);
       const { user, token, refreshToken } = response;
 
-      console.log("AuthContext - Login response:", {
-        user,
-        token: !!token,
-        refreshToken: !!refreshToken,
-      }); // Debug log
+      console.log("✅ AuthProvider - Login successful:", {
+        id: user._id,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+      });
 
-      // Store auth data
+      // Store tokens and user data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
       setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       setStorageItem(STORAGE_KEYS.USER_DATA, user);
 
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: { user, token },
-      });
-
-      console.log("AuthContext - Login successful, user state updated"); // Debug log
-      return response;
+      dispatch({ type: "SET_USER", payload: user });
+      return { user, token };
     } catch (error) {
-      console.error("AuthContext - Login failed:", error); // Debug log
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: error.response?.data?.message || "Login failed",
-      });
+      console.error("❌ AuthProvider - Login failed:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
       throw error;
     }
   };
 
   const register = async (userData) => {
-    dispatch({ type: "LOGIN_START" });
-
     try {
+      dispatch({ type: "SET_LOADING", payload: true });
+      console.log("📝 AuthProvider - Attempting registration...");
+
       const response = await authService.register(userData);
       const { user, token, refreshToken } = response;
 
-      // Store auth data
+      console.log("✅ AuthProvider - Registration successful:", {
+        id: user._id,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+      });
+
+      // Store tokens and user data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
       setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       setStorageItem(STORAGE_KEYS.USER_DATA, user);
 
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: { user, token },
-      });
-
-      return response;
+      dispatch({ type: "SET_USER", payload: user });
+      return { user, token };
     } catch (error) {
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: error.response?.data?.message || "Registration failed",
-      });
+      console.error("❌ AuthProvider - Registration failed:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
       throw error;
     }
   };
 
   const logout = async () => {
     try {
+      console.log("🔐 AuthProvider - Logging out...");
+
+      // Call logout API
       await authService.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
+
+      // Clear all auth data
       clearAuthData();
+
+      // Update state
+      dispatch({ type: "LOGOUT" });
+
+      console.log("✅ AuthProvider - Logout successful");
+    } catch (error) {
+      console.error("❌ AuthProvider - Logout error:", error);
+      // Even if API call fails, clear local data
+      clearAuthData();
+      dispatch({ type: "LOGOUT" });
     }
   };
 
-  const updateUser = (userData) => {
-    dispatch({ type: "UPDATE_USER", payload: userData });
+  const updateUser = async (userData) => {
+    try {
+      console.log("👤 AuthProvider - Updating user data:", userData);
 
-    // Update storage
-    const updatedUser = { ...state.user, ...userData };
-    setStorageItem(STORAGE_KEYS.USER_DATA, updatedUser);
+      // Update local state immediately for better UX
+      const updatedUser = { ...state.user, ...userData };
+      dispatch({ type: "UPDATE_USER", payload: userData });
+
+      // Update localStorage
+      setStorageItem(STORAGE_KEYS.USER_DATA, updatedUser);
+
+      // If this is a significant update, sync with server
+      if (userData.onboardingCompleted || userData.isEmailVerified) {
+        try {
+          const response = await userService.updateProfile(userData);
+          const serverUser = response.data.user;
+
+          console.log("✅ AuthProvider - User updated on server:", serverUser);
+
+          // Update with server response
+          dispatch({ type: "SET_USER", payload: serverUser });
+          setStorageItem(STORAGE_KEYS.USER_DATA, serverUser);
+        } catch (error) {
+          console.warn(
+            "⚠️ AuthProvider - Server update failed, keeping local changes:",
+            error
+          );
+        }
+      }
+
+      return updatedUser;
+    } catch (error) {
+      console.error("❌ AuthProvider - Update user failed:", error);
+      throw error;
+    }
   };
 
-  // Helper function to get user display name
-  const getUserDisplayName = () => {
-    if (!state.user) return "Guest";
+  const refreshUserData = async () => {
+    try {
+      console.log("🔄 AuthProvider - Refreshing user data...");
 
-    // Try name first, then email username, then fallback
-    if (state.user.name) {
-      return state.user.name;
+      const response = await userService.getProfile();
+      const userData = response.data.user;
+
+      console.log("✅ AuthProvider - User data refreshed:", userData);
+
+      setStorageItem(STORAGE_KEYS.USER_DATA, userData);
+      dispatch({ type: "SET_USER", payload: userData });
+
+      return userData;
+    } catch (error) {
+      console.error("❌ AuthProvider - Refresh user data failed:", error);
+      throw error;
     }
-
-    if (state.user.email) {
-      // Extract username from email (part before @)
-      return state.user.email.split("@")[0];
-    }
-
-    return "User";
   };
 
-  // Helper function to check if user is admin
   const isAdmin = () => {
     return state.user?.userType === "admin";
+  };
+
+  const getUserDisplayName = () => {
+    return state.user?.name || state.user?.email || "User";
   };
 
   const value = {
@@ -225,8 +262,9 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
-    getUserDisplayName,
+    refreshUserData,
     isAdmin,
+    getUserDisplayName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -235,7 +273,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

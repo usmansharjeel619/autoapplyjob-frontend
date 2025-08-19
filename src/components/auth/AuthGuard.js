@@ -10,14 +10,13 @@ const AuthGuard = ({
   const { isAuthenticated, isLoading, user, isAdmin } = useAuth();
   const location = useLocation();
 
-  console.log(
-    "🛡️ AuthGuard - Current location:",
-    location.pathname + location.search
-  ); // Debug log
+  console.log("🛡️ AuthGuard - Current location:", location.pathname);
   console.log("🛡️ AuthGuard - User auth status:", {
     isAuthenticated,
     isEmailVerified: user?.isEmailVerified,
-  }); // Debug log
+    onboardingCompleted: user?.onboardingCompleted,
+    userType: user?.userType,
+  });
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -30,45 +29,52 @@ const AuthGuard = ({
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    console.log("🛡️ AuthGuard - Not authenticated, redirecting to auth"); // Debug log
+    console.log("🛡️ AuthGuard - Not authenticated, redirecting to auth");
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  // Check admin access
+  // Check admin access first (before other checks)
   if (adminOnly && !isAdmin()) {
-    console.log("🛡️ AuthGuard - Not admin, redirecting to dashboard"); // Debug log
+    console.log("🛡️ AuthGuard - Not admin, redirecting to dashboard");
     return <Navigate to="/dashboard" replace />;
   }
 
   // ✅ IMPORTANT: If we're already on verify-email page, don't redirect again!
   if (location.pathname === "/verify-email") {
-    console.log(
-      "🛡️ AuthGuard - On verify-email page, allowing access with params:",
-      location.search
-    ); // Debug log
+    console.log("🛡️ AuthGuard - On verify-email page, allowing access");
+    return children;
+  }
+
+  // ✅ FIX: For admin users, skip all other checks
+  if (user?.userType === "admin") {
+    console.log("🛡️ AuthGuard - Admin user, allowing access");
     return children;
   }
 
   // Check email verification (skip for admin users)
-  if (requireEmailVerification && !adminOnly && user && !user.isEmailVerified) {
+  if (requireEmailVerification && user && !user.isEmailVerified) {
     console.log(
       "🛡️ AuthGuard - Email not verified, redirecting to verify-email"
-    ); // Debug log
+    );
     return <Navigate to="/verify-email" replace />;
   }
 
-  // ✅ FIX: Only check onboarding if we're NOT on the payment page
-  // This prevents redirecting from payment back to onboarding
+  // ✅ FIX: Only check onboarding for verified users (and NOT for certain protected pages)
+  const skipOnboardingCheckForPages = [
+    "/payment",
+    "/profile",
+    "/settings",
+    "/tools",
+  ];
   if (
-    !adminOnly &&
     user?.isEmailVerified &&
     !user?.onboardingCompleted &&
-    location.pathname !== "/onboarding" &&
-    location.pathname !== "/payment" // ✅ Add this condition
+    !skipOnboardingCheckForPages.includes(location.pathname) &&
+    location.pathname !== "/onboarding"
   ) {
     console.log(
       "🛡️ AuthGuard - Onboarding not complete, redirecting to onboarding"
-    ); // Debug log
+    );
     return <Navigate to="/onboarding" replace />;
   }
 

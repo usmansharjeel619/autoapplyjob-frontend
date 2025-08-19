@@ -11,38 +11,65 @@ import { API_ENDPOINTS } from "../utils/constants";
 class UserService {
   // Profile Management
   async getProfile() {
-    const response = await apiGet(API_ENDPOINTS.USER.PROFILE);
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.USER.PROFILE);
+      console.log("📋 UserService - Profile response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get profile failed:", error);
+
+      // If unauthorized, the API interceptor will handle token refresh
+      // If refresh fails, user will be logged out automatically
+      throw error;
+    }
   }
 
   async updateProfile(profileData) {
-    const response = await apiPut(
-      API_ENDPOINTS.USER.UPDATE_PROFILE,
-      profileData
-    );
-    return response.data;
+    try {
+      console.log("📝 UserService - Updating profile:", profileData);
+      const response = await apiPut(API_ENDPOINTS.USER.PROFILE, profileData);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Update profile failed:", error);
+      throw error;
+    }
   }
 
-  async uploadResume(file, onUploadProgress = null) {
-    const response = await apiPostFile(
-      API_ENDPOINTS.USER.UPLOAD_RESUME,
-      file,
-      {},
-      onUploadProgress
-    );
-    return response.data;
+  async uploadResume(file, onProgress = null) {
+    try {
+      const response = await apiPostFile(
+        API_ENDPOINTS.USER.UPLOAD_RESUME,
+        file,
+        {},
+        onProgress
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Upload resume failed:", error);
+      throw error;
+    }
   }
 
   // Dashboard
   async getDashboardStats() {
-    const response = await apiGet(API_ENDPOINTS.USER.DASHBOARD_STATS);
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.USER.DASHBOARD_STATS);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get dashboard stats failed:", error);
+      throw error;
+    }
   }
 
   // Job Management
   async getJobs(params = {}) {
-    const response = await apiGet(API_ENDPOINTS.USER.GET_JOBS, { params });
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.USER.GET_JOBS, { params });
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get jobs failed:", error);
+      throw error;
+    }
   }
 
   async getSavedJobs(params = {}) {
@@ -64,32 +91,62 @@ class UserService {
 
   // Application History
   async getApplicationHistory(params = {}) {
-    const response = await apiGet(API_ENDPOINTS.USER.APPLICATION_HISTORY, {
-      params,
-    });
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.USER.APPLICATION_HISTORY, {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get application history failed:", error);
+      throw error;
+    }
   }
 
   // Settings
   async getSettings() {
-    const response = await apiGet(API_ENDPOINTS.USER.SETTINGS);
-    return response.data;
+    try {
+      const response = await apiGet(API_ENDPOINTS.USER.SETTINGS);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get settings failed:", error);
+      throw error;
+    }
   }
 
   async updateSettings(settings) {
-    const response = await apiPut(API_ENDPOINTS.USER.SETTINGS, settings);
-    return response.data;
+    try {
+      const response = await apiPut(API_ENDPOINTS.USER.SETTINGS, settings);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Update settings failed:", error);
+      throw error;
+    }
   }
 
   // Onboarding
   async completeOnboardingStep(step, data) {
-    const response = await apiPost(`/user/onboarding/${step}`, data);
-    return response.data;
+    try {
+      const response = await apiPost(
+        `${API_ENDPOINTS.USER.ONBOARDING}/${step}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Complete onboarding step failed:", error);
+      throw error;
+    }
   }
 
   async getOnboardingProgress() {
-    const response = await apiGet("/user/onboarding/progress");
-    return response.data;
+    try {
+      const response = await apiGet(
+        `${API_ENDPOINTS.USER.ONBOARDING}/progress`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Get onboarding progress failed:", error);
+      throw error;
+    }
   }
 }
 
