@@ -1,109 +1,159 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Bell,
   Shield,
-  Smartphone,
   Mail,
-  Eye,
+  Smartphone,
   Lock,
-  Trash2,
   Download,
-  AlertTriangle,
+  Trash2,
   Save,
-  Settings as SettingsIcon,
+  User,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useApp } from "../../context/AppContext";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
+import Select from "../../components/ui/Select";
+import Modal from "../../components/ui/Modal";
+import userService from "../../services/user.service";
+import authService from "../../services/auth.service";
 
 const Settings = () => {
   const { user, updateUser, logout } = useAuth();
   const { showSuccess, showError, showWarning } = useApp();
-  const [activeTab, setActiveTab] = useState("notifications");
+
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
-  const [notifications, setNotifications] = useState({
+  // Settings state
+  const [settings, setSettings] = useState({
+    // Email Notifications
     emailJobMatches: true,
     emailApplicationUpdates: true,
     emailWeeklyReport: false,
-    smsUrgentUpdates: false,
-    smsInterviewReminders: true,
-    pushNotifications: true,
-    marketingEmails: false,
-  });
 
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: "public",
-    showSalaryExpectations: false,
-    allowRecruiterContact: true,
-    dataSharing: false,
-    analyticsTracking: true,
-  });
-
-  const [security, setSecurity] = useState({
-    twoFactorEnabled: false,
-    loginAlerts: true,
+    // Security
     sessionTimeout: "30",
   });
 
-  const tabs = [
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "privacy", label: "Privacy", icon: Eye },
-    { id: "security", label: "Security", icon: Shield },
-    { id: "account", label: "Account", icon: SettingsIcon },
-  ];
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
-  const handleNotificationChange = (key, value) => {
-    setNotifications((prev) => ({ ...prev, [key]: value }));
+  // Load settings on component mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await userService.getSettings();
+      if (response.settings) {
+        setSettings((prev) => ({
+          ...prev,
+          ...response.settings,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
   };
 
-  const handlePrivacyChange = (key, value) => {
-    setPrivacy((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSecurityChange = (key, value) => {
-    setSecurity((prev) => ({ ...prev, [key]: value }));
+  const handleSettingChange = (key, value) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSaveSettings = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      await updateUser({
-        settings: {
-          notifications,
-          privacy,
-          security,
-        },
-      });
-
+      await userService.updateSettings(settings);
       showSuccess("Settings saved successfully!");
     } catch (error) {
       showError("Failed to save settings");
+      console.error("Settings save error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePassword = () => {
-    showSuccess("Password change feature coming soon!");
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError("New passwords don't match");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      showError("Password must be at least 6 characters long");
+      return;
+    }
+
+    try {
+      await authService.changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+      showSuccess("Password changed successfully!");
+      setShowChangePasswordModal(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      showError(error.response?.data?.message || "Failed to change password");
+    }
   };
 
-  const handleEnable2FA = () => {
-    setSecurity((prev) => ({
-      ...prev,
-      twoFactorEnabled: !prev.twoFactorEnabled,
-    }));
-    showSuccess(security.twoFactorEnabled ? "2FA disabled" : "2FA enabled");
-  };
+  const handleExportData = async () => {
+    try {
+      // Create a data export object
+      const exportData = {
+        profile: {
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          location: user.location,
+          currentJobTitle: user.currentJobTitle,
+          experienceLevel: user.experienceLevel,
+          educationLevel: user.educationLevel,
+          skills: user.skills,
+          bio: user.bio,
+        },
+        settings: settings,
+        exportDate: new Date().toISOString(),
+      };
 
-  const handleExportData = () => {
-    showSuccess("Data export will be sent to your email within 24 hours");
+      // Create and download file
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `autoapplyjob-data-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showSuccess("Data exported successfully!");
+    } catch (error) {
+      showError("Failed to export data");
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -112,389 +162,160 @@ const Settings = () => {
 
   const confirmDeleteAccount = async () => {
     try {
-      // Simulate account deletion
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      showWarning("Account deletion feature is not yet implemented");
+      // In a real app, you'd call an API to delete the account
+      showWarning("Account deletion feature will be available soon");
       setShowDeleteModal(false);
     } catch (error) {
       showError("Failed to delete account");
     }
   };
 
-  const renderNotifications = () => (
-    <Card>
-      <Card.Header>
-        <h3 className="text-lg font-semibold text-gray-900">
-          Notification Preferences
-        </h3>
-        <p className="text-sm text-gray-600">
-          Choose how you want to be notified
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-600 mt-1">
+          Manage your account preferences and security settings
         </p>
-      </Card.Header>
-      <Card.Body>
-        <div className="space-y-6">
-          {/* Email Notifications */}
-          <div>
-            <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-              <Mail size={16} />
-              Email Notifications
-            </h4>
-            <div className="space-y-4">
-              {[
-                {
-                  key: "emailJobMatches",
-                  label: "New job matches",
-                  description:
-                    "Get notified when we find jobs that match your preferences",
-                },
-                {
-                  key: "emailApplicationUpdates",
-                  label: "Application updates",
-                  description:
-                    "Updates on your job applications and interview requests",
-                },
-                {
-                  key: "emailWeeklyReport",
-                  label: "Weekly summary",
-                  description: "Weekly report of your job search activity",
-                },
-                {
-                  key: "marketingEmails",
-                  label: "Marketing emails",
-                  description: "Product updates and career tips",
-                },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-start justify-between"
-                >
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-900">{item.label}</h5>
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer ml-4">
-                    <input
-                      type="checkbox"
-                      checked={notifications[item.key]}
-                      onChange={(e) =>
-                        handleNotificationChange(item.key, e.target.checked)
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
+      </div>
 
-          {/* SMS Notifications */}
-          <div>
-            <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-              <Smartphone size={16} />
-              SMS Notifications
-            </h4>
-            <div className="space-y-4">
-              {[
-                {
-                  key: "smsUrgentUpdates",
-                  label: "Urgent updates",
-                  description:
-                    "Critical application updates and interview confirmations",
-                },
-                {
-                  key: "smsInterviewReminders",
-                  label: "Interview reminders",
-                  description: "Reminders 24 hours before interviews",
-                },
-              ].map((item) => (
-                <div
-                  key={item.key}
-                  className="flex items-start justify-between"
-                >
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-900">{item.label}</h5>
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer ml-4">
-                    <input
-                      type="checkbox"
-                      checked={notifications[item.key]}
-                      onChange={(e) =>
-                        handleNotificationChange(item.key, e.target.checked)
-                      }
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Push Notifications */}
-          <div>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">
-                  Browser push notifications
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Get instant notifications in your browser
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                  type="checkbox"
-                  checked={notifications.pushNotifications}
-                  onChange={(e) =>
-                    handleNotificationChange(
-                      "pushNotifications",
-                      e.target.checked
-                    )
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-      </Card.Body>
-    </Card>
-  );
-
-  const renderPrivacy = () => (
-    <Card>
-      <Card.Header>
-        <h3 className="text-lg font-semibold text-gray-900">
-          Privacy Settings
-        </h3>
-        <p className="text-sm text-gray-600">
-          Control your privacy and data sharing preferences
-        </p>
-      </Card.Header>
-      <Card.Body>
-        <div className="space-y-6">
-          <div>
-            <label className="form-label">Profile Visibility</label>
-            <select
-              className="form-input form-select"
-              value={privacy.profileVisibility}
-              onChange={(e) =>
-                handlePrivacyChange("profileVisibility", e.target.value)
-              }
-            >
-              <option value="public">Public - Visible to all recruiters</option>
-              <option value="limited">Limited - Only partner companies</option>
-              <option value="private">
-                Private - Not visible to recruiters
-              </option>
-            </select>
-            <p className="text-sm text-gray-600 mt-1">
-              Control who can see your profile information
-            </p>
-          </div>
-
-          {[
-            {
-              key: "showSalaryExpectations",
-              label: "Show salary expectations",
-              description: "Display your salary range to potential employers",
-            },
-            {
-              key: "allowRecruiterContact",
-              label: "Allow recruiter contact",
-              description:
-                "Let recruiters contact you directly through the platform",
-            },
-            {
-              key: "dataSharing",
-              label: "Data sharing with partners",
-              description: "Share anonymized data with job board partners",
-            },
-            {
-              key: "analyticsTracking",
-              label: "Analytics tracking",
-              description: "Help us improve the platform with usage analytics",
-            },
-          ].map((item) => (
-            <div key={item.key} className="flex items-start justify-between">
-              <div className="flex-1">
-                <h5 className="font-medium text-gray-900">{item.label}</h5>
-                <p className="text-sm text-gray-600">{item.description}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                  type="checkbox"
-                  checked={privacy[item.key]}
-                  onChange={(e) =>
-                    handlePrivacyChange(item.key, e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-          ))}
-        </div>
-      </Card.Body>
-    </Card>
-  );
-
-  const renderSecurity = () => (
-    <div className="space-y-6">
+      {/* Email Notifications */}
       <Card>
         <Card.Header>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Security Settings
-          </h3>
-          <p className="text-sm text-gray-600">
-            Manage your account security preferences
-          </p>
-        </Card.Header>
-        <Card.Body>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <h4 className="font-medium text-gray-900">Change Password</h4>
-                <p className="text-sm text-gray-600">
-                  Update your account password
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={handleChangePassword}
-                icon={<Lock size={16} />}
-              >
-                Change Password
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <h4 className="font-medium text-gray-900">
-                  Two-Factor Authentication
-                </h4>
-                <p className="text-sm text-gray-600">
-                  {security.twoFactorEnabled
-                    ? "Enabled"
-                    : "Add an extra layer of security to your account"}
-                </p>
-              </div>
-              <Button
-                variant={security.twoFactorEnabled ? "outline" : "primary"}
-                onClick={handleEnable2FA}
-              >
-                {security.twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"}
-              </Button>
-            </div>
-
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">Login alerts</h4>
-                <p className="text-sm text-gray-600">
-                  Get notified of suspicious login attempts
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                  type="checkbox"
-                  checked={security.loginAlerts}
-                  onChange={(e) =>
-                    handleSecurityChange("loginAlerts", e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-
-            <div>
-              <label className="form-label">Session timeout (minutes)</label>
-              <select
-                className="form-input form-select"
-                value={security.sessionTimeout}
-                onChange={(e) =>
-                  handleSecurityChange("sessionTimeout", e.target.value)
-                }
-              >
-                <option value="15">15 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60">1 hour</option>
-                <option value="240">4 hours</option>
-                <option value="never">Never</option>
-              </select>
-            </div>
+          <div className="flex items-center gap-2">
+            <Bell size={20} className="text-gray-600" />
+            <h3 className="text-lg font-semibold">Email Notifications</h3>
           </div>
-        </Card.Body>
-      </Card>
-    </div>
-  );
-
-  const renderAccount = () => (
-    <div className="space-y-6">
-      <Card>
-        <Card.Header>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Account Information
-          </h3>
-          <p className="text-sm text-gray-600">
-            Manage your account settings and data
-          </p>
         </Card.Header>
         <Card.Body>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between">
               <div>
-                <label className="form-label">Email Address</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  value={user?.email || ""}
-                  disabled
-                />
+                <label className="text-sm font-medium text-gray-900">
+                  Job Match Alerts
+                </label>
+                <p className="text-sm text-gray-500">
+                  Get notified when we find jobs that match your profile
+                </p>
               </div>
-              <div>
-                <label className="form-label">Account Type</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value="Job Seeker"
-                  disabled
-                />
-              </div>
+              <input
+                type="checkbox"
+                checked={settings.emailJobMatches}
+                onChange={(e) =>
+                  handleSettingChange("emailJobMatches", e.target.checked)
+                }
+                className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+              />
             </div>
 
-            <div>
-              <label className="form-label">Member Since</label>
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  Application Updates
+                </label>
+                <p className="text-sm text-gray-500">
+                  Get notified about changes to your job applications
+                </p>
+              </div>
               <input
-                type="text"
-                className="form-input"
-                value="January 2024"
-                disabled
+                type="checkbox"
+                checked={settings.emailApplicationUpdates}
+                onChange={(e) =>
+                  handleSettingChange(
+                    "emailApplicationUpdates",
+                    e.target.checked
+                  )
+                }
+                className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-900">
+                  Weekly Report
+                </label>
+                <p className="text-sm text-gray-500">
+                  Receive a weekly summary of your job search activity
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.emailWeeklyReport}
+                onChange={(e) =>
+                  handleSettingChange("emailWeeklyReport", e.target.checked)
+                }
+                className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
               />
             </div>
           </div>
         </Card.Body>
       </Card>
 
+      
+
+      {/* Security Settings */}
       <Card>
         <Card.Header>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Data Management
-          </h3>
-          <p className="text-sm text-gray-600">
-            Export or delete your account data
-          </p>
+          <div className="flex items-center gap-2">
+            <Lock size={20} className="text-gray-600" />
+            <h3 className="text-lg font-semibold">Security</h3>
+          </div>
+        </Card.Header>
+        <Card.Body>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Session Timeout
+              </label>
+              <Select
+                value={settings.sessionTimeout}
+                onChange={(value) =>
+                  handleSettingChange("sessionTimeout", value)
+                }
+                options={[
+                  { value: "15", label: "15 minutes" },
+                  { value: "30", label: "30 minutes" },
+                  { value: "60", label: "1 hour" },
+                  { value: "120", label: "2 hours" },
+                ]}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Automatically log out after this period of inactivity
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setShowChangePasswordModal(true)}
+                icon={<Lock size={16} />}
+              >
+                Change Password
+              </Button>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Account Management */}
+      <Card>
+        <Card.Header>
+          <div className="flex items-center gap-2">
+            <User size={20} className="text-gray-600" />
+            <h3 className="text-lg font-semibold">Account Management</h3>
+          </div>
         </Card.Header>
         <Card.Body>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-gray-900">Export Your Data</h4>
-                <p className="text-sm text-gray-600">
-                  Download a copy of all your data
+                <h4 className="text-sm font-medium text-gray-900">
+                  Export Your Data
+                </h4>
+                <p className="text-sm text-gray-500">
+                  Download a copy of your profile data and settings
                 </p>
               </div>
               <Button
@@ -506,130 +327,209 @@ const Settings = () => {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
-              <div>
-                <h4 className="font-medium text-red-900">Delete Account</h4>
-                <p className="text-sm text-red-600">
-                  Permanently delete your account and all data
-                </p>
+            <div className="pt-4 border-t border-red-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-red-900">
+                    Delete Account
+                  </h4>
+                  <p className="text-sm text-red-600">
+                    Permanently delete your account and all associated data
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteAccount}
+                  icon={<Trash2 size={16} />}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  Delete Account
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                onClick={handleDeleteAccount}
-                icon={<Trash2 size={16} />}
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
-                Delete Account
-              </Button>
             </div>
           </div>
         </Card.Body>
       </Card>
 
-      {/* Delete Account Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="text-red-500" size={24} />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Delete Account
-              </h3>
-            </div>
-
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete your account? This action cannot
-              be undone and will permanently delete:
-            </p>
-
-            <ul className="list-disc list-inside text-sm text-gray-600 mb-6 space-y-1">
-              <li>Your profile and resume</li>
-              <li>All job applications and history</li>
-              <li>Saved jobs and preferences</li>
-              <li>AI-generated content</li>
-            </ul>
-
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={confirmDeleteAccount}
-                className="flex-1 bg-red-600 hover:bg-red-700"
-              >
-                Delete Account
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "notifications":
-        return renderNotifications();
-      case "privacy":
-        return renderPrivacy();
-      case "security":
-        return renderSecurity();
-      case "account":
-        return renderAccount();
-      default:
-        return renderNotifications();
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your account preferences and privacy settings
-          </p>
-        </div>
-
+      {/* Save Button */}
+      <div className="flex justify-end">
         <Button
           onClick={handleSaveSettings}
           loading={loading}
           icon={<Save size={16} />}
+          className="bg-black hover:bg-gray-800 text-white"
         >
-          Save Changes
+          {loading ? "Saving..." : "Save Settings"}
         </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
+      {/* Change Password Modal */}
+      <Modal
+        isOpen={showChangePasswordModal}
+        onClose={() => {
+          setShowChangePasswordModal(false);
+          setPasswordData({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+        }}
+        title="Change Password"
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Current Password"
+            type={showPasswords.current ? "text" : "password"}
+            value={passwordData.currentPassword}
+            onChange={(e) =>
+              setPasswordData((prev) => ({
+                ...prev,
+                currentPassword: e.target.value,
+              }))
+            }
+            placeholder="Enter your current password"
+            rightIcon={
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? "border-primary-500 text-primary-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({
+                    ...prev,
+                    current: !prev.current,
+                  }))
+                }
+                className="text-gray-400 hover:text-gray-600"
               >
-                <Icon size={16} />
-                {tab.label}
+                {showPasswords.current ? (
+                  <EyeOff size={16} />
+                ) : (
+                  <Eye size={16} />
+                )}
               </button>
-            );
-          })}
-        </nav>
-      </div>
+            }
+            required
+          />
 
-      {/* Tab Content */}
-      {renderTabContent()}
+          <Input
+            label="New Password"
+            type={showPasswords.new ? "text" : "password"}
+            value={passwordData.newPassword}
+            onChange={(e) =>
+              setPasswordData((prev) => ({
+                ...prev,
+                newPassword: e.target.value,
+              }))
+            }
+            placeholder="Enter your new password"
+            rightIcon={
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({
+                    ...prev,
+                    new: !prev.new,
+                  }))
+                }
+                className="text-gray-400 hover:text-gray-600"
+              >
+                {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            }
+            required
+          />
+
+          <Input
+            label="Confirm New Password"
+            type={showPasswords.confirm ? "text" : "password"}
+            value={passwordData.confirmPassword}
+            onChange={(e) =>
+              setPasswordData((prev) => ({
+                ...prev,
+                confirmPassword: e.target.value,
+              }))
+            }
+            placeholder="Confirm your new password"
+            rightIcon={
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPasswords((prev) => ({
+                    ...prev,
+                    confirm: !prev.confirm,
+                  }))
+                }
+                className="text-gray-400 hover:text-gray-600"
+              >
+                {showPasswords.confirm ? (
+                  <EyeOff size={16} />
+                ) : (
+                  <Eye size={16} />
+                )}
+              </button>
+            }
+            required
+          />
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowChangePasswordModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePasswordChange}
+              disabled={
+                !passwordData.currentPassword ||
+                !passwordData.newPassword ||
+                !passwordData.confirmPassword
+              }
+            >
+              Change Password
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Account"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <Trash2 className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Are you sure you want to delete your account?
+              </h3>
+              <div className="text-sm text-gray-600 space-y-2">
+                <p>This action cannot be undone. Deleting your account will:</p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Permanently delete your profile and resume</li>
+                  <li>Cancel your subscription (if active)</li>
+                  <li>Remove all your job applications and history</li>
+                  <li>Delete all your saved jobs and preferences</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteAccount}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete Account
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -50,6 +50,33 @@ class UserService {
     }
   }
 
+  // NEW: Download resume method
+  async downloadResume() {
+    try {
+      const response = await apiGet(
+        `${API_ENDPOINTS.USER.UPLOAD_RESUME}/download`,
+        {
+          responseType: "blob", // Important: Tell axios to handle as blob
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("❌ UserService - Download resume failed:", error);
+      throw error;
+    }
+  }
+
+  // NEW: Delete resume method
+  async deleteResume() {
+    try {
+      const response = await apiDelete(API_ENDPOINTS.USER.UPLOAD_RESUME);
+      return response.data;
+    } catch (error) {
+      console.error("❌ UserService - Delete resume failed:", error);
+      throw error;
+    }
+  }
+
   // Dashboard
   async getDashboardStats() {
     try {

@@ -14,6 +14,7 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -116,6 +117,14 @@ export const apiPostFile = (url, file, data = {}, onUploadProgress = null) => {
           onUploadProgress(percentCompleted);
         }
       : undefined,
+  });
+};
+
+// File download helper - NEW
+export const apiDownloadFile = (url, config = {}) => {
+  return api.get(url, {
+    ...config,
+    responseType: "blob", // Important for file downloads
   });
 };
 
