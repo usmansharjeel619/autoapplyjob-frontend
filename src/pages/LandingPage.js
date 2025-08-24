@@ -148,10 +148,18 @@ const LandingPage = () => {
   ];
 
   const whyChooseUs = [
-    "Unlimited job applications",
+    "Auto apply on job applications",
     "Custom resume optimization",
     "Real-time application tracker",
     "Priority support",
+    "AI-powered job matching across 20+ platforms",
+    "ATS-optimized resume formatting",
+    "24/7 application monitoring",
+    "Bank-level security & privacy protection",
+    "Automated follow-up emails",
+    "Professional application review",
+    "Export detailed application reports",
+    "Cancel or pause subscription anytime",
   ];
 
   const plans = [
@@ -308,24 +316,24 @@ const LandingPage = () => {
     <div className="min-h-screen bg-white">
       {/* Navigation Header */}
       <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <img
                 src="images/logo.png"
                 alt="AutoApplyJob"
-                className="w-40 h-40"
-              />{" "}
+                className="w-32 h-32 sm:w-40 sm:h-40"
+              />
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="md:flex items-center gap-6">
+            {/* Desktop Navigation - Hidden below lg (1024px) */}
+            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
               {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`font-medium transition-colors text-sm lg:text-base ${
+                  className={`font-medium transition-colors text-sm xl:text-base whitespace-nowrap ${
                     activeSection === item.id
                       ? "text-black border-b-2 border-black pb-1"
                       : "text-gray-600 hover:text-black"
@@ -336,19 +344,19 @@ const LandingPage = () => {
               ))}
             </nav>
 
-            {/* Action Buttons */}
-            <div className=" md:flex items-center gap-4">
+            {/* Desktop Action Buttons - Hidden below lg */}
+            <div className="hidden lg:flex items-center gap-3 xl:gap-4 flex-shrink-0">
               {!isAuthenticated ? (
                 <>
                   <Link
                     to="/auth"
-                    className="text-gray-600 hover:text-black font-medium"
+                    className="text-gray-600 hover:text-black font-medium text-sm xl:text-base whitespace-nowrap"
                   >
                     Sign In
                   </Link>
                   <Button
                     onClick={handleGetStarted}
-                    className="bg-black hover:bg-gray-800 text-white"
+                    className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6"
                   >
                     Get Started
                   </Button>
@@ -356,58 +364,72 @@ const LandingPage = () => {
               ) : (
                 <Button
                   onClick={handleGetStarted}
-                  className="bg-black hover:bg-gray-800 text-white"
+                  className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6"
                 >
                   Dashboard
                 </Button>
               )}
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - Visible only below lg */}
             <Button
               variant="ghost"
               size="sm"
-              icon={mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              icon={mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden"
+              className="lg:hidden p-2"
             />
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation Dropdown */}
           {mobileMenuOpen && (
-            <div className="lg:hidden bg-white border-t border-gray-200 py-4">
+            <div className="lg:hidden bg-white border-t border-gray-200 py-4 shadow-lg">
               <nav className="flex flex-col gap-4">
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className={`text-left font-medium ${
-                      activeSection === item.id ? "text-black" : "text-gray-600"
+                    onClick={() => {
+                      scrollToSection(item.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`text-left font-medium transition-colors py-2 px-2 rounded ${
+                      activeSection === item.id
+                        ? "text-black bg-gray-100"
+                        : "text-gray-600 hover:text-black hover:bg-gray-50"
                     }`}
                   >
                     {item.label}
                   </button>
                 ))}
-                <div className="border-t border-gray-200 pt-4 flex flex-col gap-3">
+
+                {/* Mobile Action Buttons */}
+                <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-3">
                   {!isAuthenticated ? (
                     <>
                       <Link
                         to="/auth"
-                        className="text-gray-600 hover:text-black font-medium"
+                        className="text-gray-600 hover:text-black font-medium py-2 px-2 rounded hover:bg-gray-50 transition-colors"
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
                       </Link>
                       <Button
-                        onClick={handleGetStarted}
-                        className="bg-black hover:bg-gray-800 text-white w-full"
+                        onClick={() => {
+                          handleGetStarted();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="bg-black hover:bg-gray-800 text-white w-full justify-center"
                       >
                         Get Started
                       </Button>
                     </>
                   ) : (
                     <Button
-                      onClick={handleGetStarted}
-                      className="bg-black hover:bg-gray-800 text-white w-full"
+                      onClick={() => {
+                        handleGetStarted();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="bg-black hover:bg-gray-800 text-white w-full justify-center"
                     >
                       Dashboard
                     </Button>
@@ -434,16 +456,17 @@ const LandingPage = () => {
         {/* Vertical Lines Overlay */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="container mx-auto h-full relative">
-            {/* Multiple vertical lines with different opacities and positions */}
-            <div className="absolute left-1/6 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-            <div className="absolute left-1/3 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
-            <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-            <div className="absolute left-2/3 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-            <div className="absolute right-1/6 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            {/* 8 equally spaced vertical lines across the width */}
 
-            {/* Additional decorative lines */}
-            <div className="absolute left-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-white/8 to-transparent"></div>
-            <div className="absolute right-1/4 top-0 w-0.5 h-full bg-gradient-to-b from-transparent via-white/8 to-transparent"></div>
+            <div className="absolute left-[10%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[20%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute left-[30%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[40%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+            <div className="absolute left-[50%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+            <div className="absolute left-[60%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+            <div className="absolute left-[70%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute left-[80%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[90%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
           </div>
         </div>
 
@@ -484,7 +507,7 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
               {/* Floating card */}
-              <div className="absolute -bottom-6 -right-6 bg-white rounded-xl p-6 shadow-xl border border-gray-100">
+              <div className="absolute -bottom-10 -right-2 bg-white rounded-xl p-6 shadow-xl border border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                     <Award className="text-white" size={24} />
@@ -627,9 +650,20 @@ const LandingPage = () => {
         <div className="absolute inset-0 pointer-events-none">
           <div className="container mx-auto h-full relative">
             {/* Subtle vertical lines */}
-            <div className="absolute left-1/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
-            <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-            <div className="absolute left-3/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="container mx-auto h-full relative">
+                {/* 8 equally spaced vertical lines across the width */}
+                <div className="absolute left-[10%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+                <div className="absolute left-[20%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                <div className="absolute left-[30%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+                <div className="absolute left-[40%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+                <div className="absolute left-[50%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+                <div className="absolute left-[60%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+                <div className="absolute left-[70%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                <div className="absolute left-[80%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+                <div className="absolute left-[90%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -704,7 +738,7 @@ const LandingPage = () => {
             <h3 className="text-2xl font-bold text-black text-center mb-8">
               What You Get
             </h3>
-            <p className="text-center text-gray-600 mb-8 text-lg">
+            <p className="text-left text-gray-600 mb-8 text-lg">
               All Plans Include:
             </p>
 
@@ -763,7 +797,7 @@ const LandingPage = () => {
                     <span className="text-4xl font-bold text-black">
                       {plan.price}
                     </span>
-                    <span className="text-gray-600">/{plan.period}</span>
+                    <span className="text-gray-600">{plan.period}</span>
                   </div>
 
                   {/* Features list - left aligned */}
@@ -771,7 +805,7 @@ const LandingPage = () => {
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <CheckCircle
-                          className="text-black flex-shrink-0 mt-0.5"
+                          className="text-black flex-shrink-0 mt-1.5"
                           size={16}
                         />
                         <span className="text-gray-700">{feature}</span>
@@ -823,7 +857,7 @@ const LandingPage = () => {
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
                         key={i}
-                        className="text-black fill-current"
+                        className="text-yellow-400 fill-current"
                         size={20}
                       />
                     ))}
