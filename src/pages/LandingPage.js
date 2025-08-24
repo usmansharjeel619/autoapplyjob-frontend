@@ -166,6 +166,8 @@ const LandingPage = () => {
     {
       name: "Plan A: Accelerator",
       price: "3,250 PKR",
+      priceUSD: "$11.50",
+      description: "Perfect for getting started",
       features: [
         "50 automated applications/month",
         "1 resume optimization",
@@ -178,6 +180,8 @@ const LandingPage = () => {
     {
       name: "Plan B: Professional",
       price: "4,250 PKR",
+      priceUSD: "$14.99",
+      description: "Most popular choice",
       popular: true,
       features: [
         "100 applications/month",
@@ -191,6 +195,8 @@ const LandingPage = () => {
     {
       name: "Plan C: Executive",
       price: "10,450 PKR",
+      priceUSD: "$36.50",
+      description: "For serious job seekers",
       features: [
         "500 applications/month",
         "Premium ATS resume builder",
@@ -795,10 +801,15 @@ const LandingPage = () => {
 
                   {/* Price - center aligned */}
                   <div className="text-center mb-6">
-                    <span className="text-4xl font-bold text-black">
-                      {plan.price}
-                    </span>
-                    <span className="text-gray-600">{plan.period}</span>
+                    <div className="mb-2">
+                      <span className="text-4xl font-bold text-black">
+                        {plan.price}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-semibold text-gray-600">
+                      {plan.priceUSD}
+                    </div>
+                    <span className="text-gray-500 text-sm">/month</span>
                   </div>
 
                   {/* Features list - left aligned */}
