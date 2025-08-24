@@ -112,6 +112,8 @@ export const AuthProvider = ({ children }) => {
     removeStorageItem(STORAGE_KEYS.AUTH_TOKEN);
     removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
     removeStorageItem(STORAGE_KEYS.USER_DATA);
+    localStorage.removeItem("onboarding_progress");
+    sessionStorage.clear();
   };
 
   const login = async (credentials) => {
@@ -122,6 +124,7 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login(credentials);
       const { user, token, refreshToken } = response;
 
+      clearAuthData();
       console.log("✅ AuthProvider - Login successful:", {
         id: user._id,
         email: user.email,
@@ -156,6 +159,7 @@ export const AuthProvider = ({ children }) => {
         isEmailVerified: user.isEmailVerified,
       });
 
+      clearAuthData();
       // Store tokens and user data
       setStorageItem(STORAGE_KEYS.AUTH_TOKEN, token);
       setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
@@ -173,21 +177,21 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       console.log("🔐 AuthProvider - Logging out...");
-
-      // Call logout API
       await authService.logout();
 
-      // Clear all auth data
+      // Clear ALL auth data including onboarding progress
       clearAuthData();
 
-      // Update state
-      dispatch({ type: "LOGOUT" });
+      // Also clear any onboarding progress
+      localStorage.removeItem("onboardingProgress"); // if you're storing it
+      sessionStorage.clear(); // Clear everything in session storage
 
+      dispatch({ type: "LOGOUT" });
       console.log("✅ AuthProvider - Logout successful");
     } catch (error) {
       console.error("❌ AuthProvider - Logout error:", error);
-      // Even if API call fails, clear local data
       clearAuthData();
+      sessionStorage.clear(); // Clear even on error
       dispatch({ type: "LOGOUT" });
     }
   };
