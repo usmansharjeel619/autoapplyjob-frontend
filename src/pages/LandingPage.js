@@ -25,12 +25,19 @@ import {
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import Modal from "../components/ui/Modal";
+import TermsOfService from "../content/TermsOfService";
+import PrivacyPolicy from "../content/PrivacyPolicy";
 
 const LandingPage = () => {
   const { isAuthenticated, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+
+  // Modal states for Terms and Privacy Policy
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -63,6 +70,17 @@ const LandingPage = () => {
       setActiveSection(sectionId);
       setMobileMenuOpen(false);
     }
+  };
+
+  // Modal handlers
+  const handleTermsClick = (e) => {
+    e.preventDefault();
+    setShowTermsModal(true);
+  };
+
+  const handlePrivacyClick = (e) => {
+    e.preventDefault();
+    setShowPrivacyModal(true);
   };
 
   // Update active section on scroll
@@ -935,11 +953,7 @@ const LandingPage = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-black">Office</h4>
-                    <p className="text-gray-600">
-                      123 Business Ave, Suite 100
-                      <br />
-                      New York, NY 10001
-                    </p>
+                    <p className="text-gray-600">Islamabad, Pakistan</p>
                   </div>
                 </div>
               </div>
@@ -1016,86 +1030,123 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Updated Footer */}
       <footer className="bg-black text-white py-12">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
+            {/* Logo and Description */}
             <div>
-              <div className="flex items-center gap-2 mb-6">
+              <div>
                 <img
-                  src="images/logo.png"
+                  src="images/logo-white.png"
                   alt="AutoApplyJob"
-                  className="w-40 h-40"
-                />{" "}
+                  className="w-60 h-60"
+                />
               </div>
               <p className="text-gray-400">
-                Revolutionizing job search with AI-powered automation and expert
-                human touch.
+                Revolutionizing job search with AI-powered automation.
               </p>
             </div>
 
+            {/* Navigation Sections */}
             <div>
-              <h4 className="font-semibold mb-4">Services</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Job Application
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    CV Optimization
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Interview Coaching
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    LinkedIn Profile
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
+              <h4 className="font-semibold mb-4">Explore</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <button
+                    onClick={() => scrollToSection("home")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Home
+                  </button>
+                </li>
+                <li>
+                  <button
                     onClick={() => scrollToSection("about")}
-                    className="hover:text-white transition-colors"
+                    className="hover:text-white transition-colors text-left"
                   >
                     About Us
                   </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Careers
-                  </a>
+                  <button
+                    onClick={() => scrollToSection("how-it-works")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    How It Works
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Terms of Service
-                  </a>
+                  <button
+                    onClick={() => scrollToSection("features")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Features
+                  </button>
                 </li>
               </ul>
             </div>
 
+            {/* More Sections */}
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
+              <h4 className="font-semibold mb-4">More</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>contact@autoapplyjob.com</li>
-                <li>+1 (555) 123-4567</li>
-                <li>123 Business Ave, Suite 100</li>
-                <li>New York, NY 10001</li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection("pricing")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Pricing
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection("testimonials")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Testimonials
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => scrollToSection("contact")}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Contact
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal and Contact */}
+            <div>
+              <h4 className="font-semibold mb-4">Legal & Contact</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <button
+                    onClick={handleTermsClick}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Terms of Service
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={handlePrivacyClick}
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Privacy Policy
+                  </button>
+                </li>
+                <li className="pt-2">
+                  <p className="text-sm">info@autoapplyjob.co</p>
+                </li>
+                <li>
+                  <p className="text-sm">+1 (555) 123-4567</p>
+                </li>
+                <li>
+                  <p className="text-sm">Islamabad,Pakistan</p>
+                </li>
               </ul>
             </div>
           </div>
@@ -1105,6 +1156,26 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Terms of Service Modal */}
+      <Modal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        title="Terms of Service"
+        size="lg"
+      >
+        <TermsOfService />
+      </Modal>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        title="Privacy Policy"
+        size="lg"
+      >
+        <PrivacyPolicy />
+      </Modal>
     </div>
   );
 };
