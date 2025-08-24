@@ -255,13 +255,6 @@ export const AppProvider = ({ children }) => {
   const isTablet = windowSize.width >= 768 && windowSize.width < 1024;
   const isDesktop = windowSize.width >= 1024;
 
-  // Auto-close sidebar on mobile
-  useEffect(() => {
-    if (isMobile && state.sidebarOpen) {
-      setSidebarOpen(false);
-    }
-  }, [isMobile]);
-
   const value = {
     // State
     ...state,

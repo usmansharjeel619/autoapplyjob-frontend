@@ -164,7 +164,7 @@ function App() {
             </Routes>
 
             {/* Add debug component */}
-            <AuthDebugger />
+            {/* <AuthDebugger /> */}
           </div>
         </AppProvider>
       </AuthProvider>
