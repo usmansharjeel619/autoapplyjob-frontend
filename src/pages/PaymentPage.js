@@ -36,52 +36,57 @@ const PaymentPage = () => {
   const plans = [
     {
       id: "basic",
-      name: "Basic Plan",
-      price: 2999,
+      name: "Plan A",
+      price: 3250,
+      priceUSD: "$11.50",
+      description: "Perfect for getting started",
       period: "month",
+
       features: [
-        "Up to 50 job applications per month",
-        "Basic job matching",
-        "Email notifications",
-        "Resume upload",
-        "Standard support",
+        "50 automated applications/month",
+        "1 resume optimization",
+        "Basic dashboard",
+        "Start in <5 minutes",
+        "Bank-level encryption",
+        "Quick query resolution",
       ],
       recommended: false,
     },
     {
       id: "premium",
-      name: "Premium Plan",
-      price: 4999,
+      name: "Plan B",
+      price: 4250,
+      priceUSD: "$14.99",
+      description: "Most popular choice",
       period: "month",
       features: [
-        "Unlimited job applications",
-        "AI-powered job matching",
-        "Auto-apply feature",
-        "Priority support",
-        "Advanced filters",
-        "Interview preparation tips",
-        "Salary insights",
+        "100 applications/month",
+        "3 resume versions",
+        "Interview analytics",
+        "24-hour onboarding",
+        "Resume compatibility report",
+        "Avg. interviews/month",
       ],
       recommended: true,
     },
     {
       id: "enterprise",
-      name: "Enterprise Plan",
-      price: 9999,
+      name: "Plan C",
+      price: 10450,
+      priceUSD: "$36.50",
+      description: "For serious job seekers",
       period: "month",
       features: [
-        "Everything in Premium",
-        "Dedicated account manager",
-        "Custom integrations",
-        "Advanced analytics",
-        "Team collaboration features",
-        "Priority job placement",
-        "24/7 phone support",
+        "500 applications/month",
+        "Premium ATS resume builder",
+        "Dedicated career advisor",
+        "Advisor reviews top 5 applications",
+        "Industry-specific hiring insights",
+        "Freeze/cancel anytime",
       ],
       recommended: false,
     },
   ];
-
   const paymentMethods = [
     {
       id: "card",
@@ -228,9 +233,11 @@ const PaymentPage = () => {
                 <ArrowLeft size={20} />
               </button>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">AA</span>
-                </div>
+                <img
+                  src="images/logo.png"
+                  alt="AutoApplyJob"
+                  className="w-40 h-40"
+                />{" "}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                     Payment Details
@@ -358,9 +365,11 @@ const PaymentPage = () => {
               <ArrowLeft size={20} />
             </button>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">AA</span>
-              </div>
+              <img
+                src="images/logo.png"
+                alt="AutoApplyJob"
+                className="w-40 h-40"
+              />{" "}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   Choose Your Plan
@@ -400,11 +409,16 @@ const PaymentPage = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {plan.name}
                   </h3>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-3xl font-bold text-gray-900">
-                      Rs. {plan.price}
-                    </span>
-                    <span className="text-gray-600">/{plan.period}</span>
+                  <div className="text-center mb-6">
+                    <div className="mb-2">
+                      <span className="text-4xl font-bold text-black">
+                        {plan.price.toLocaleString("en-US")} PKR
+                      </span>
+                    </div>
+                    <div className="text-2xl font-semibold text-gray-600">
+                      {plan.priceUSD}
+                    </div>
+                    <span className="text-gray-500 text-sm">/month</span>
                   </div>
                 </div>
 

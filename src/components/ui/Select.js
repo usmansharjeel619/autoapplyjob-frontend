@@ -15,14 +15,26 @@ const Select = forwardRef(
       required = false,
       multiple = false,
       className = "",
+      icon,
       ...props
     },
     ref
   ) => {
     const selectClasses = [
-      "block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors focus:border-black focus:outline-none focus:ring-1 focus:ring-black disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
+      // Base styling to match AutoComplete exactly
+      "block w-full rounded-lg border border-gray-300 bg-white text-sm",
+      "placeholder-gray-400 shadow-sm transition-colors",
+      "focus:border-black focus:outline-none focus:ring-1 focus:ring-black",
+      "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
+      // Padding adjustments for icon support
+      icon ? "pl-10 py-2" : "px-3 py-2",
+      "pr-8", // Always have right padding for dropdown arrow
+      // Error styling
       error ? "border-red-300 focus:border-red-500 focus:ring-red-500" : "",
+      // Disabled styling
       disabled ? "opacity-50 cursor-not-allowed" : "",
+      // Remove default select appearance
+      "appearance-none",
       className,
     ]
       .filter(Boolean)
@@ -43,7 +55,7 @@ const Select = forwardRef(
     };
 
     return (
-      <div className="space-y-1">
+      <div className={`space-y-1`}>
         {label && (
           <label className="block text-sm font-medium text-gray-700">
             {label}
@@ -52,6 +64,13 @@ const Select = forwardRef(
         )}
 
         <div className="relative">
+          {/* Icon */}
+          {icon && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-400">{icon}</span>
+            </div>
+          )}
+
           <select
             ref={ref}
             value={value}
@@ -90,11 +109,12 @@ const Select = forwardRef(
             })}
           </select>
 
-          {/* {!multiple && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          {/* Dropdown Arrow - Always visible for selects */}
+          {!multiple && (
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <ChevronDown size={16} className="text-gray-400" />
             </div>
-          )} */}
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

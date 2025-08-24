@@ -161,16 +161,17 @@ const JobPreferences = ({
 
       {/* Location with Predefined Options */}
       <div className="grid grid-cols-1 gap-6">
-        <Select
+        <AutoComplete
           label="Preferred Location"
+          placeholder="Type to search location..."
           value={formData.location}
           onChange={(value) => handleInputChange("location", value)}
+          options={LOCATIONS.sort((a, b) => a.label.localeCompare(b.label)).map(
+            (loc) => loc.label
+          )}
           error={errors.location}
           required
-          options={[
-            { value: "", label: "Select preferred location" },
-            ...LOCATIONS,
-          ]}
+          maxSuggestions={10}
           icon={<MapPin size={16} />}
         />
       </div>
@@ -226,20 +227,6 @@ const JobPreferences = ({
             <p className="mt-1 text-sm text-red-600">{errors.workTypes}</p>
           )}
         </div>
-      </div>
-
-      {/* Remote Work Preference */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="remoteOk"
-          checked={formData.remoteOk}
-          onChange={(e) => handleInputChange("remoteOk", e.target.checked)}
-          className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
-        />
-        <label htmlFor="remoteOk" className="ml-2 text-sm text-gray-700">
-          I'm open to remote work opportunities
-        </label>
       </div>
       {/* Navigation */}
       <div className="flex justify-between pt-6">

@@ -12,6 +12,7 @@ const AutoComplete = ({
   required = false,
   className = "",
   maxSuggestions = 8,
+  icon,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +24,7 @@ const AutoComplete = ({
   // Filter options based on input value
   useEffect(() => {
     if (!value || value.length < 1) {
-      setFilteredOptions([]);
+      setFilteredOptions(options.slice(0, maxSuggestions));
       return;
     }
 
@@ -44,7 +45,8 @@ const AutoComplete = ({
   const handleOptionClick = (option) => {
     onChange(option);
     setIsOpen(false);
-    inputRef.current?.blur();
+    setHighlightedIndex(-1);
+    // Don't blur the input to keep focus
   };
 
   const handleKeyDown = (e) => {
@@ -87,12 +89,17 @@ const AutoComplete = ({
     setTimeout(() => {
       setIsOpen(false);
       setHighlightedIndex(-1);
-    }, 150);
+    }, 200);
   };
 
   const clearValue = () => {
     onChange("");
     inputRef.current?.focus();
+  };
+
+  const showDropdown = () => {
+    setFilteredOptions(options.slice(0, maxSuggestions));
+    setIsOpen(true);
   };
 
   return (
@@ -116,11 +123,12 @@ const AutoComplete = ({
           placeholder={placeholder}
           disabled={disabled}
           className={`
-            block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+            block w-full rounded-lg border border-gray-300 bg-white py-2 text-sm
             placeholder-gray-400 shadow-sm transition-colors
             focus:border-black focus:outline-none focus:ring-1 focus:ring-black
             disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
-            ${value ? "pr-10" : ""}
+            ${icon ? "pl-10" : "px-3"}
+            ${value ? "pr-10" : "pr-8"}
             ${
               error
                 ? "border-red-300 focus:border-red-500 focus:ring-red-500"
@@ -130,23 +138,39 @@ const AutoComplete = ({
           {...props}
         />
 
+        {/* Icon */}
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-gray-400">{icon}</span>
+          </div>
+        )}
+
         {/* Clear button */}
         {value && !disabled && (
           <button
             type="button"
             onClick={clearValue}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-700"
+            className="absolute inset-y-0 right-8 flex items-center hover:text-gray-700"
           >
             <X size={16} className="text-gray-400" />
           </button>
         )}
 
         {/* Dropdown icon */}
-        {!value && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <ChevronDown size={16} className="text-gray-400" />
-          </div>
-        )}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault(); // Prevent input blur
+            if (isOpen) {
+              setIsOpen(false);
+            } else {
+              showDropdown();
+            }
+          }}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+        >
+          <ChevronDown size={16} className="text-gray-400" />
+        </button>
 
         {/* Dropdown list */}
         {isOpen && filteredOptions.length > 0 && (
@@ -155,7 +179,12 @@ const AutoComplete = ({
               {filteredOptions.map((option, index) => (
                 <li
                   key={index}
-                  onClick={() => handleOptionClick(option)}
+                  onMouseDown={(e) => {
+                    // Prevent blur event from firing before click
+                    e.preventDefault();
+                    handleOptionClick(option);
+                  }}
+                  onMouseEnter={() => setHighlightedIndex(index)}
                   className={`
                     px-3 py-2 text-sm cursor-pointer transition-colors
                     ${
