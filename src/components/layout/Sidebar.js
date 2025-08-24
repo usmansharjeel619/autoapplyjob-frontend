@@ -102,10 +102,11 @@ const Sidebar = ({ isAdmin = false }) => {
           bg-white border-r border-gray-200
           transform transition-all duration-300 ease-in-out
           ${sidebarOpen ? "w-64" : "lg:w-20"}
+          flex flex-col h-screen
         `}
       >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 h-20">
+        {/* Sidebar Header - Fixed at top */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 h-20 flex-shrink-0">
           {sidebarOpen && (
             <div className="flex items-center gap-2">
               <img
@@ -130,76 +131,80 @@ const Sidebar = ({ isAdmin = false }) => {
             }
           />
         </div>
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = isActivePath(item.path);
 
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={handleLinkClick}
-                className={`
-                  flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative
-                  ${
-                    isActive
-                      ? "bg-primary-50 text-primary-700 border border-primary-200"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }
-                  ${!sidebarOpen ? "justify-center" : ""}
-                `}
-                title={!sidebarOpen ? item.label : ""}
-              >
-                <Icon
-                  size={20}
-                  className={isActive ? "text-primary-700" : "text-gray-500"}
-                />
-                {sidebarOpen && (
-                  <span className="font-medium">{item.label}</span>
-                )}
+        {/* Scrollable Navigation Container */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Navigation - Scrollable */}
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = isActivePath(item.path);
 
-                {/* Tooltip for collapsed state */}
-                {!sidebarOpen && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                    {item.label}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={handleLinkClick}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-lg transition-colors group relative
+                    ${
+                      isActive
+                        ? "bg-primary-50 text-primary-700 border border-primary-200"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }
+                    ${!sidebarOpen ? "justify-center" : ""}
+                  `}
+                  title={!sidebarOpen ? item.label : ""}
+                >
+                  <Icon
+                    size={20}
+                    className={isActive ? "text-primary-700" : "text-gray-500"}
+                  />
+                  {sidebarOpen && (
+                    <span className="font-medium">{item.label}</span>
+                  )}
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-200">
-          {sidebarOpen && (
-            <div className="bg-primary-50 rounded-lg p-4">
-              <h4 className="font-semibold text-primary-900 mb-2">
-                {isAdmin ? "Admin Panel" : "AutoApplyJob"}
-              </h4>
-              <p className="text-sm text-primary-700">
-                {isAdmin
-                  ? "Manage automated job applications and user accounts"
-                  : "AI-powered job application automation"}
-              </p>
-            </div>
-          )}
+                  {/* Tooltip for collapsed state */}
+                  {!sidebarOpen && (
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      {item.label}
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-          {!sidebarOpen && (
-            <div className="flex justify-center">
-              <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center relative group">
-                <span className="text-primary-600 font-bold text-xs">
-                  {isAdmin ? "A" : "AI"}
-                </span>
-
-                {/* Tooltip */}
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+          {/* Sidebar Footer - Fixed at bottom */}
+          <div className="p-4 border-t border-gray-200 flex-shrink-0">
+            {sidebarOpen && (
+              <div className="bg-primary-50 rounded-lg p-4">
+                <h4 className="font-semibold text-primary-900 mb-2">
                   {isAdmin ? "Admin Panel" : "AutoApplyJob"}
+                </h4>
+                <p className="text-sm text-primary-700">
+                  {isAdmin
+                    ? "Manage automated job applications and user accounts"
+                    : "AI-powered job application automation"}
+                </p>
+              </div>
+            )}
+
+            {!sidebarOpen && (
+              <div className="flex justify-center">
+                <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center relative group">
+                  <span className="text-primary-600 font-bold text-xs">
+                    {isAdmin ? "A" : "AI"}
+                  </span>
+
+                  {/* Tooltip */}
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                    {isAdmin ? "Admin Panel" : "AutoApplyJob"}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </aside>
     </>

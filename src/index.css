@@ -212,3 +212,93 @@ code {
     gap: 1rem;
   }
 }
+
+@layer utilities {
+  /* Webkit scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: rgb(243 244 246);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+
+  /* Hide scrollbar when not needed */
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Scrollbar variants */
+  .scrollbar-thumb-gray-300 {
+    scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+  }
+
+  .scrollbar-track-gray-100 {
+    /* Applied via scrollbar-color above */
+  }
+
+  /* Alternative: Completely hidden scrollbar but still scrollable */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Sidebar specific overrides */
+.sidebar-nav {
+  /* Ensure smooth scrolling */
+  scroll-behavior: smooth;
+
+  /* Better scroll performance */
+  -webkit-overflow-scrolling: touch;
+
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+}
+
+/* Responsive scrollbar visibility */
+@media (max-width: 1024px) {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
+/* Focus states for better accessibility */
+.sidebar-nav:focus-within {
+  outline: none;
+}
+
+/* Ensure menu items don't overflow when scrolling */
+.sidebar-menu-item {
+  flex-shrink: 0;
+}
+
+/* Smooth transitions for sidebar state changes */
+.sidebar-container {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Additional utility for content that should not scroll */
+.sidebar-fixed-content {
+  flex-shrink: 0;
+}
