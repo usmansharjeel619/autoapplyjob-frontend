@@ -315,6 +315,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Header */}
+      {/* Using custom scc for this */}
       <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
@@ -327,8 +328,8 @@ const LandingPage = () => {
               />
             </div>
 
-            {/* Desktop Navigation - Hidden below lg (1024px) */}
-            <nav className="hidden lg:flex items-center gap-4 xl:gap-6">
+            {/* Desktop Navigation */}
+            <nav className="desktop-nav">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -344,8 +345,8 @@ const LandingPage = () => {
               ))}
             </nav>
 
-            {/* Desktop Action Buttons - Hidden below lg */}
-            <div className="hidden lg:flex items-center gap-3 xl:gap-4 flex-shrink-0">
+            {/* Desktop Action Buttons */}
+            <div className="desktop-action-buttons">
               {!isAuthenticated ? (
                 <>
                   <Link
@@ -354,93 +355,93 @@ const LandingPage = () => {
                   >
                     Sign In
                   </Link>
-                  <Button
+                  <button
                     onClick={handleGetStarted}
-                    className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6"
+                    className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6 py-2 rounded-lg font-medium transition-colors"
                   >
                     Get Started
-                  </Button>
+                  </button>
                 </>
               ) : (
-                <Button
+                <button
                   onClick={handleGetStarted}
-                  className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6"
+                  className="bg-black hover:bg-gray-800 text-white text-sm xl:text-base px-4 xl:px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   Dashboard
-                </Button>
+                </button>
               )}
             </div>
 
-            {/* Mobile Menu Button - Visible only below lg */}
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {/* Mobile Menu Button */}
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2"
-            />
+              className="mobile-menu-button"
+            >
+              {mobileMenuOpen ? (
+                <X size={20} className="text-gray-700" />
+              ) : (
+                <Menu size={20} className="text-gray-700" />
+              )}
+            </button>
           </div>
 
-          {/* Mobile Navigation Dropdown */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden bg-white border-t border-gray-200 py-4 shadow-lg">
-              <nav className="flex flex-col gap-4">
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      scrollToSection(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`text-left font-medium transition-colors py-2 px-2 rounded ${
-                      activeSection === item.id
-                        ? "text-black bg-gray-100"
-                        : "text-gray-600 hover:text-black hover:bg-gray-50"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+          {/* Mobile Navigation */}
+          <div className={`mobile-nav ${mobileMenuOpen ? "open" : ""}`}>
+            <nav>
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    scrollToSection(item.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`${
+                    activeSection === item.id
+                      ? "active"
+                      : "text-gray-600 hover:text-black"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
 
-                {/* Mobile Action Buttons */}
-                <div className="border-t border-gray-200 pt-4 mt-2 flex flex-col gap-3">
-                  {!isAuthenticated ? (
-                    <>
-                      <Link
-                        to="/auth"
-                        className="text-gray-600 hover:text-black font-medium py-2 px-2 rounded hover:bg-gray-50 transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign In
-                      </Link>
-                      <Button
-                        onClick={() => {
-                          handleGetStarted();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="bg-black hover:bg-gray-800 text-white w-full justify-center"
-                      >
-                        Get Started
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
+              {/* Mobile Action Buttons */}
+              <div className="action-buttons">
+                {!isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/auth"
+                      className="text-gray-600 hover:text-black font-medium py-2 px-2 rounded hover:bg-gray-50 transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <button
                       onClick={() => {
                         handleGetStarted();
                         setMobileMenuOpen(false);
                       }}
-                      className="bg-black hover:bg-gray-800 text-white w-full justify-center"
+                      className="bg-black hover:bg-gray-800 text-white w-full py-3 rounded-lg font-medium transition-colors"
                     >
-                      Dashboard
-                    </Button>
-                  )}
-                </div>
-              </nav>
-            </div>
-          )}
+                      Get Started
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleGetStarted();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="bg-black hover:bg-gray-800 text-white w-full py-3 rounded-lg font-medium transition-colors"
+                  >
+                    Dashboard
+                  </button>
+                )}
+              </div>
+            </nav>
+          </div>
         </div>
       </header>
-
       {/* Hero Section with Background Image and Vertical Lines */}
       <section
         id="home"
