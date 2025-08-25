@@ -233,6 +233,7 @@ const LandingPage = () => {
       content:
         "AutoApplyJob helped me land my dream job at a Fortune 500 company. The process was seamless and professional.",
       rating: 5,
+      image: "/images/testimonial-1.jpg", // Add testimonial images
     },
     {
       name: "Michael Chen",
@@ -240,6 +241,7 @@ const LandingPage = () => {
       content:
         "I was skeptical at first, but the results speak for themselves. Got 3 interview offers in the first month!",
       rating: 5,
+      image: "/images/testimonial-2.jpg",
     },
     {
       name: "Emily Davis",
@@ -247,8 +249,10 @@ const LandingPage = () => {
       content:
         "The team's expertise in crafting applications is outstanding. Highly recommend their services.",
       rating: 5,
+      image: "/images/testimonial-3.jpg",
     },
   ];
+
   const howItWorksSteps = [
     {
       number: "01",
@@ -270,6 +274,7 @@ const LandingPage = () => {
           />
         </svg>
       ),
+      color: "from-blue-500 to-blue-600",
     },
     {
       number: "02",
@@ -291,6 +296,7 @@ const LandingPage = () => {
           />
         </svg>
       ),
+      color: "from-green-500 to-green-600",
     },
     {
       number: "03",
@@ -312,6 +318,7 @@ const LandingPage = () => {
           />
         </svg>
       ),
+      color: "from-purple-500 to-purple-600",
     },
     {
       number: "04",
@@ -333,13 +340,13 @@ const LandingPage = () => {
           />
         </svg>
       ),
+      color: "from-orange-500 to-orange-600",
     },
   ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Header */}
-      {/* Using custom scc for this */}
       <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
@@ -466,13 +473,14 @@ const LandingPage = () => {
           </div>
         </div>
       </header>
+
       {/* Hero Section with Background Image and Vertical Lines */}
       <section
         id="home"
         className="relative h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/images/hero-background.jpg')",
-          backgroundAttachment: "fixed", // Optional: creates parallax effect
+          backgroundAttachment: "fixed",
         }}
       >
         {/* Dark overlay for better text readability */}
@@ -481,8 +489,6 @@ const LandingPage = () => {
         {/* Vertical Lines Overlay */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="container mx-auto h-full relative">
-            {/* 8 equally spaced vertical lines across the width */}
-
             <div className="absolute left-[10%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
             <div className="absolute left-[20%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
             <div className="absolute left-[30%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
@@ -518,7 +524,7 @@ const LandingPage = () => {
       </section>
 
       {/* About Us Section */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="relative py-20 bg-white z-10">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left side - Portrait Image */}
@@ -619,7 +625,7 @@ const LandingPage = () => {
       {/* Enhanced How It Works */}
       <section
         id="how-it-works"
-        className="py-20 bg-gradient-to-br from-gray-50 to-white"
+        className="relative py-20 bg-gradient-to-br from-gray-50 to-white z-10"
       >
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -660,35 +666,30 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
       {/* Statistics Counter with Background Image */}
       <section
         className="relative py-16 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url('/images/hero-background.jpg')",
-          backgroundAttachment: "fixed", // Optional: creates parallax effect
+          backgroundAttachment: "fixed",
         }}
       >
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black/70"></div>
 
-        {/* Vertical Lines Overlay (optional) */}
+        {/* Vertical Lines Overlay */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="container mx-auto h-full relative">
-            {/* Subtle vertical lines */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="container mx-auto h-full relative">
-                {/* 8 equally spaced vertical lines across the width */}
-                <div className="absolute left-[10%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-                <div className="absolute left-[20%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-                <div className="absolute left-[30%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-                <div className="absolute left-[40%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
-                <div className="absolute left-[50%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-                <div className="absolute left-[60%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
-                <div className="absolute left-[70%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
-                <div className="absolute left-[80%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-                <div className="absolute left-[90%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
-              </div>
-            </div>
+            <div className="absolute left-[10%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[20%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute left-[30%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[40%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+            <div className="absolute left-[50%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+            <div className="absolute left-[60%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/25 to-transparent"></div>
+            <div className="absolute left-[70%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+            <div className="absolute left-[80%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+            <div className="absolute left-[90%] top-0 w-px h-full bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
           </div>
         </div>
 
@@ -729,7 +730,7 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="relative py-20 bg-white z-10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -758,7 +759,6 @@ const LandingPage = () => {
               </Card>
             ))}
           </div>
-
           <div className="bg-gray-50 rounded-2xl p-8">
             <h3 className="text-2xl font-bold text-black text-center mb-8">
               What You Get
@@ -780,7 +780,7 @@ const LandingPage = () => {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 bg-gray-50">
+      <section id="pricing" className="relative py-20 bg-gray-50 z-10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -809,7 +809,6 @@ const LandingPage = () => {
                   </div>
                 )}
                 <Card.Body className="p-8">
-                  {/* Plan name and description - left aligned */}
                   <div className="text-left mb-6">
                     <h3 className="text-2xl font-bold text-black mb-2">
                       {plan.name}
@@ -817,7 +816,6 @@ const LandingPage = () => {
                     <p className="text-gray-600">{plan.description}</p>
                   </div>
 
-                  {/* Price - center aligned */}
                   <div className="text-center mb-6">
                     <div className="mb-2">
                       <span className="text-4xl font-bold text-black">
@@ -830,7 +828,6 @@ const LandingPage = () => {
                     <span className="text-gray-500 text-sm">/month</span>
                   </div>
 
-                  {/* Features list - left aligned */}
                   <ul className="space-y-3 mb-8 text-left">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-3">
@@ -843,7 +840,6 @@ const LandingPage = () => {
                     ))}
                   </ul>
 
-                  {/* Button - center aligned */}
                   <div className="text-center">
                     <Button
                       onClick={handleGetStarted}
@@ -864,8 +860,74 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Success Stories with Images */}
+      <section className="relative py-20 bg-white z-10">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4">
+              Success Stories
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real results from real professionals
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            <div className="text-center">
+              <div className="relative mb-6">
+                <img
+                  src="/images/success-story-1.jpg"
+                  alt="Career Growth"
+                  className="w-full h-64 object-cover rounded-2xl shadow-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-black mb-4">
+                Career Growth
+              </h3>
+              <p className="text-gray-600">
+                Our clients experience an average of 40% salary increase within
+                6 months
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="relative mb-6">
+                <img
+                  src="/images/success-story-2.jpg"
+                  alt="Interview Success"
+                  className="w-full h-64 object-cover rounded-2xl shadow-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-black mb-4">
+                Interview Success
+              </h3>
+              <p className="text-gray-600">
+                98% of our clients receive interview calls within the first
+                month
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="relative mb-6">
+                <img
+                  src="/images/success-story-3.jpg"
+                  alt="Dream Jobs"
+                  className="w-full h-64 object-cover rounded-2xl shadow-lg"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+              </div>
+              <h3 className="text-2xl font-bold text-black mb-4">Dream Jobs</h3>
+              <p className="text-gray-600">
+                From startups to Fortune 500 companies, we help you land
+                anywhere
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-white">
+      <section id="testimonials" className="relative py-20 bg-gray-50 z-10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">
@@ -883,6 +945,21 @@ const LandingPage = () => {
                 className="border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <Card.Body className="p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <img
+                      src={testimonial.image}
+                      alt={testimonial.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-semibold text-black">
+                        {testimonial.name}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {testimonial.role}
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
@@ -892,15 +969,9 @@ const LandingPage = () => {
                       />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-6 italic">
+                  <p className="text-gray-700 italic">
                     "{testimonial.content}"
                   </p>
-                  <div>
-                    <p className="font-semibold text-black">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
-                  </div>
                 </Card.Body>
               </Card>
             ))}
@@ -909,7 +980,7 @@ const LandingPage = () => {
       </section>
 
       {/* Contact Us */}
-      <section id="contact" className="py-20 bg-gray-50">
+      <section id="contact" className="relative py-20 bg-white z-10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">Contact Us</h2>
@@ -960,7 +1031,7 @@ const LandingPage = () => {
             </div>
 
             {/* Contact Form */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
               <form className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
@@ -1031,7 +1102,7 @@ const LandingPage = () => {
       </section>
 
       {/* Updated Footer */}
-      <footer className="bg-black text-white py-12">
+      <footer className="relative bg-black text-white py-12 z-10">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             {/* Logo and Description */}
@@ -1145,7 +1216,7 @@ const LandingPage = () => {
                   <p className="text-sm">+1 (555) 123-4567</p>
                 </li>
                 <li>
-                  <p className="text-sm">Islamabad,Pakistan</p>
+                  <p className="text-sm">Islamabad, Pakistan</p>
                 </li>
               </ul>
             </div>
